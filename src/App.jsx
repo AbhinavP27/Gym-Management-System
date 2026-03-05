@@ -4,6 +4,7 @@ import Hero from './components/Hero'
 import Trainers from './components/Trainers'
 import About from './components/About'
 import Footer from './components/Footer'
+import Plans from './components/Plans'
 
 
 const App = () => {
@@ -13,6 +14,7 @@ const App = () => {
       <Hero />
       <About />
       <Trainers />
+      <Plans />
       <Footer />
     </>
   )
