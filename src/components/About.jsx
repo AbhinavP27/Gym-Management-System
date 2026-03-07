@@ -1,10 +1,12 @@
 import React from 'react'
 import './style/About.css'
+import atmos from '../assets/gymA.png'
 
 
 const About = () => {
   return (
     <section className='about'> 
+    <img src={atmos} alt="" className='atmos'/>
       <div className='box '>
         <h1>Urban Grind Fitness</h1>
         <p>

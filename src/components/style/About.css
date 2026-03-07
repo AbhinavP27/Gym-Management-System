@@ -5,22 +5,27 @@
     text-align: center;
     margin: 100px auto;
     padding: 30px;
-    background-color: #f0f0f0;
+    background-color: rgba(176, 176, 179, 0.95);
     border-radius: 10px;
     max-width: 800px;
     box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
-    z-index: 100;
+    position: relative;
+    z-index: 2;
+    opacity: 0.8;
 }
 
 .box h1{
     margin-bottom: 15px;
     color: #222;
+    font-weight: bold;
+    font-size: 32px;
 }
 
 .box p{
     font-size: 16px;
     line-height: 1.6;
-    color: #555;
+    color: #272525;
+    font-weight: normal;
 }
 
 .about{
@@ -28,8 +33,20 @@
     background-size: cover;
     background-position: center;
     min-height: 100vh;
-
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+
+.atmos{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    filter: brightness(100%);
+    filter: blur(.9px);
+    
 }
