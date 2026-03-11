@@ -9,10 +9,11 @@ import "./style/Hero.css";
 
 const Hero = () => {
   return (
-    <Carousel fade>
+    
+    <Carousel fade id="hero">
 
       <Carousel.Item>
-        <div className="hero">
+        <div className="hero" >
           <img className="hero-image" src={hero1} alt="Workout" />
 
           <div className="hero-text">
@@ -42,7 +43,7 @@ const Hero = () => {
 
             <div className="hero-buttons">
               <button className="btn-primary">Start Training</button>
-              <button className="btn-secondary">Meet Trainers</button>
+              <a href="#trainers"><button className="btn-secondary" >Meet Trainers</button></a>
             </div>
           </div>
         </div>
@@ -60,10 +61,11 @@ const Hero = () => {
 
             <div className="hero-buttons">
               <button className="btn-primary">Join Now</button>
-              <button className="btn-secondary">View Programs</button>
+              <a href="#services"><button className="btn-secondary">View Programs</button></a>
             </div>
           </div>
         </div>
+        
       </Carousel.Item>
 
     </Carousel>

@@ -13,8 +13,7 @@ const trainers = [
 
 const Trainers = () => {
   return (
-    <section className="trainers">
-
+    <section className="trainers" id="trainers">
       <h1 className="trainer-title">Meet Our Trainers</h1>
 
       <div className="trainer-container">
@@ -26,7 +25,6 @@ const Trainers = () => {
           </div>
         ))}
       </div>
-
     </section>
   );
 };
