@@ -1,7 +1,7 @@
 .trainers{
     padding: 80px 20px;
     text-align: center;
-    background: linear-gradient(to bottom,#0f0f0f,#1a1a1a);
+    background: linear-gradient(to bottom,#1a1a1a,#0f0f0f);
 }
 
 .trainer-title{
@@ -58,4 +58,31 @@
     color: #0af4e5;
     font-size: 14px;
     letter-spacing: 1px;
+}
+
+.trainer-overlay{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+
+  background:rgba(0,0,0,0.9);
+  color:white;
+  border-radius: 20px;
+
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+
+  padding:20px;
+  text-align:center;
+
+  opacity:0;
+  transition:0.4s;
+}
+
+.trainer-card:hover .trainer-overlay{
+  opacity:1;
 }
