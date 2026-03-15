@@ -2,10 +2,27 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  
 }
 
 :root {
   --main-color: #0ef4e5;
+}
+
+.navbar{
+  position: fixed;
+  top: 0;
+  width: 100%;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.navbar.show{
+  transform: translateY(0);
+}
+
+.navbar.hide{
+  transform: translateY(-100%);
 }
 
 .navbar {
@@ -19,7 +36,13 @@
   justify-content: space-between;
   align-items: center;
 
-  background-color: rgba(0, 0, 0, 0.7);;
+  /* GLASSMORPHISM STYLE */
+  background: rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(14px);
+
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+
   padding: 12px 40px;
 
   z-index: 99999;
@@ -27,6 +50,11 @@
 
 .navbar-brand {
   font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.navbar-brand span{
+  text-shadow: 0 0 10px #c9f40a;
 }
 
 .urban {
@@ -34,45 +62,93 @@
   height: 65px;
 }
 
+/* NAV LINKS */
+
 .nav-links {
   display: flex;
   list-style: none;
   align-items: center;
+  margin-top: 10px;
+  gap: 18px; /* improved spacing */
 }
 
-.nav-links li {
-  margin-top: 8px;
-  margin-bottom: auto;
-  margin-left: 20px;
+.nav-links li{
+  display: flex;
+  align-items: center;
 }
 
-.nav-links a {
+.nav-links a{
   color: ghostwhite;
   text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
   transition: all 0.3s ease;
+  position: relative;
 }
 
-.nav-links a:hover {
-  background-color: ghostwhite;
-  color: black;
+/* underline base */
+
+.nav-links a::after{
+  content: "";
+  position: absolute;
+
+  left: 50%;
+  bottom: -4px;
+
+  width: 0%;
+  height: 2px;
+
+  background: #c9f40a;
+
+  transition: all 0.3s ease;
+
+  transform: translateX(-50%);
 }
+
+/* hover animation */
+
+.nav-links a:hover::after{
+  width: 70%;
+}
+
+.nav-links a:hover{
+  color:#c9f40a;
+}
+
+/* JOIN BUTTON */
 
 .join-btn {
-  background-color: ghostwhite;
-  color: black;
+  background: linear-gradient(135deg,#c9f40a,#a6d804);
+  color: #111;
+  padding: 8px 18px;
+  border-radius: 25px;
+  font-weight: 600;
+  text-decoration: none;
   border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-weight: 500;
-  transition: 0.3s;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-block;
+
+  box-shadow: 0 0 12px rgba(201,244,10,0.6);
 }
 
 .join-btn:hover {
-  background: gray;
-  cursor: pointer;
-  color: black;
+  transform: translateY(-2px);
+  box-shadow: 0 0 22px rgba(201,244,10,0.9);
+  background: transparent;
+
+}
+
+.join-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+  color: #000;
+}
+
+/* REMOVE UNDERLINE FROM BUTTON LINKS */
+
+.nav-links .join-btn::after{
+  display: none;
 }
 
 /* HAMBURGER MENU */
@@ -90,10 +166,6 @@
 
   .navbar{
     padding:12px 20px;
-  }
-
-  .nav-links li{
-    margin-left:15px;
   }
 
 }
@@ -116,7 +188,8 @@
     flex-direction:column;
     align-items:center;
 
-    background-color:rgba(0,0,0,0.95);
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(20px);
 
     max-height:0;
     overflow:hidden;
@@ -125,8 +198,8 @@
   }
 
   .nav-links.active{
-    max-height:80vh;     /* allows space for scrolling */
-    overflow-y:auto;     /* enables vertical scroll */
+    max-height:80vh;
+    overflow-y:auto;
     padding:20px 0;
   }
 
@@ -136,9 +209,8 @@
 
 }
 
-  .nav-links a{
-    display:block;
-    width:100%;
-    text-align:center;
-  }
-
+.nav-links a{
+  display:block;
+  width:100%;
+  text-align:center;
+}

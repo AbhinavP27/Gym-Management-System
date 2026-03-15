@@ -1,27 +1,47 @@
 import React from "react";
 import "./style/Navbar.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 // import logo from '../assets/logo-1.png'
 
 const Navbar = () => {
-  const [menuOpen,setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  const controlNavbar = () => {
+    if (window.scrollY > lastScrollY) {
+      setShowNavbar(false); // scrolling down
+    } else {
+      setShowNavbar(true); // scrolling up
+    }
+    setLastScrollY(window.scrollY);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", controlNavbar);
+    return () => window.removeEventListener("scroll", controlNavbar);
+  }, [lastScrollY]);
+
   return (
-    <div className="navbar shadow-lg">
+    <div className={`navbar shadow-lg ${showNavbar ? "show" : "hide"}`}>
       <a className="navbar-brand fw-bold text-white p-2" href="#hero">
         URBAN
         <span className="b-4 " style={{ color: "#c9f40a" }}>
           GRIND
         </span>
       </a>
-      <div className="menu-toggle"
-      onClick={()=>setMenuOpen(!menuOpen)}>
+
+      <div
+        className="menu-toggle"
+        onClick={() => setMenuOpen(!menuOpen)}
+      >
         ☰
       </div>
 
       {/* <img className='urban' src={logo} alt="Logo" />   */}
 
       <ul className={`nav-links ${menuOpen ? "active" : ""}`}>
-        {/* <li><a href="#">Home</a></li> */}
         <li>
           <a href="#about">About</a>
         </li>
@@ -38,13 +58,17 @@ const Navbar = () => {
           <a href="#testimonials">Testimonials</a>
         </li>
         <li>
-          <a href="#">Contact</a>
+          <a href="#contact">Contact</a>
         </li>
         <li>
-          <button className="join-btn">Login</button>
+          <Link to="/login" className="join-btn">
+            Login
+          </Link>
         </li>
         <li>
-          <button className="join-btn">Join Now</button>
+          <Link to="/join" className="join-btn">
+            Join Now
+          </Link>
         </li>
       </ul>
     </div>

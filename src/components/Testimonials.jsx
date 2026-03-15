@@ -24,8 +24,8 @@ const testimonials = [
   { name: "Ajay Menon", review: "One of the best gyms in the city.", rating: 5 },
   { name: "Kavitha Raj", review: "Good equipment and friendly trainers.", rating: 4 },
   { name: "Ravi Kumar", review: "Clean gym space and motivated trainers.", rating: 5 },
-  { name: "Kavya Thomas", review: "Great atmosphere for fitness.", rating: 4 }
-
+  { name: "Kavya Thomas", review: "Great atmosphere for fitness.", rating: 4 },
+  { name: "Rajesh Das", review: "Highly professional trainers.", rating: 5 },
 ];
 
 const Testimonials = () => {
@@ -61,7 +61,7 @@ const Testimonials = () => {
 
           <div className="testimonial-card" key={i}>
 
-            <p className="testimonial-text">"{item.review}"</p>
+            <p className="testimonial-text  h-25">"{item.review}"</p>
 
             <div className="stars">
               {"★".repeat(item.rating)}

@@ -1,8 +1,9 @@
 .testimonials{
-  padding:60px 20px;
+  padding:90px 20px;
   background: linear-gradient(to bottom,#0f0f0f,#1a1a1a);
   color:white;
   text-align:center;
+
 }
 
 .testimonial-title{
@@ -33,6 +34,8 @@
 .testimonial-text{
   font-style:italic;
   margin-bottom:15px;
+  padding-bottom: auto;
+
 }
 
 .stars{
