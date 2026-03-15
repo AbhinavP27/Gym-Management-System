@@ -37,7 +37,7 @@
   align-items: center;
 
   /* GLASSMORPHISM STYLE */
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.279);
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(14px);
 

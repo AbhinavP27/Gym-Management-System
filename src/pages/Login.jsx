@@ -23,8 +23,14 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container" id="login">
+    <div className="login-overlay" id="login">
       <div className="login-card">
+        <button
+          type="button"
+          className="close-button"
+          aria-label="Close login"
+          onClick={() => navigate("/")}
+        />
         <h2>Urban Grind Login</h2>
 
         <form onSubmit={handleSubmit}>
