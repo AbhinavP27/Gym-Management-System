@@ -1,5 +1,5 @@
 import React from "react";
-import Carousel from "react-bootstrap/Carousel";
+import Carousel from "react-bootstrap/esm/Carousel";
 
 import hero1 from "../assets/gym3.png";
 import hero2 from "../assets/gym4.png";
@@ -24,8 +24,8 @@ const Hero = () => {
             </p>
 
             <div className="hero-buttons">
-              <button className="btn-primary">Join Now</button>
-              <button className="btn-secondary" href="#plans">View Plans</button>
+              <a href="#plans"><button className="btn-primary">Join Now</button></a>
+              <a href="#plans"><button className="btn-secondary">View Plans</button></a>
             </div>
           </div>
         </div>
