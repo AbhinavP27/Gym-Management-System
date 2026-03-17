@@ -66,7 +66,7 @@ const Navbar = () => {
           </Link>
         </li>
         <li>
-          <Link to="/join" className="join-btn">
+          <Link to="/join" className="join-btn ">
             Join Now
           </Link>
         </li>

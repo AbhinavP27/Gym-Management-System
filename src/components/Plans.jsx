@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import './style/Plans.css'
 
 const plans = [
@@ -36,6 +37,8 @@ const plans = [
 ]
 
 const Plans = () => {
+  const navigate = useNavigate()
+
   return (
     <section className="plans-section h-4" id='plans'>
 
@@ -64,8 +67,11 @@ const Plans = () => {
                 <li key={i}>{feature}</li>
               ))}
             </ul>
-
-            <button className="plan-btn">
+            
+            <button 
+              className="plan-btn"
+              onClick={() => navigate('/join')}
+            >
               Sign Up Now
             </button>
 
