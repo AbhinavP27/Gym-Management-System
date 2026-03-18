@@ -24,6 +24,14 @@
   z-index:99999;
 }
 
+.register-overlay{
+  padding:32px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(0,191,255,0.12), transparent 26%),
+    radial-gradient(circle at 88% 12%, rgba(255,130,92,0.12), transparent 28%),
+    linear-gradient(135deg, #04070d, #0c1320 52%, #070a12);
+}
+
 /* CARD */
 
 .login-card{
@@ -55,6 +63,49 @@
   padding:50px 46px 44px;
 }
 
+.register-card{
+  max-width:860px;
+  padding:48px 48px 42px;
+  background:linear-gradient(160deg, rgba(16,19,28,0.95), rgba(7,10,16,0.9));
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 32px 90px rgba(0,0,0,0.76), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.login-card--login{
+  max-width:540px;
+  padding:46px 44px 40px;
+  background:linear-gradient(160deg, rgba(16,19,28,0.95), rgba(7,10,16,0.9));
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 28px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.register-card h2{
+  font-size:2rem;
+  letter-spacing:0.4px;
+  margin-bottom:6px;
+}
+
+.eyebrow{
+  font-size:.8rem;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#73f2ff;
+  margin-bottom:6px;
+  font-weight:700;
+}
+
+.subtext{
+  margin-bottom:18px;
+  color:#cfd4dd;
+  line-height:1.5;
+}
+
+.login-form{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
 /* Hide scrollbar for WebKit */
 .login-card::-webkit-scrollbar{
   width:0;
@@ -73,6 +124,10 @@
   margin-bottom:28px;
   font-size:1.8rem;
   letter-spacing:.5px;
+}
+
+.login-card--login h2{
+  margin-bottom:10px;
 }
 
 /* CLOSE BUTTON */
@@ -155,6 +210,25 @@
     0 6px 20px rgba(0,0,0,0.25);
 }
 
+.register-card input,
+.register-card select{
+  margin:0;
+  background:rgba(255,255,255,0.04);
+  border-color:rgba(255,255,255,0.12);
+}
+
+.register-card input:focus,
+.register-card select:focus{
+  border-color:#25d0ff;
+  box-shadow:
+    0 0 0 3px rgba(37,208,255,0.16),
+    0 6px 24px rgba(0,0,0,0.28);
+}
+
+.register-card .error-text{
+  margin:4px 0 0;
+}
+
 /* PRIMARY BUTTON */
 .login-card button[type="submit"]{
   width:100%;
@@ -174,6 +248,12 @@
   transform:translateY(-2px);
   box-shadow:0 22px 60px rgba(201,244,10,0.45);
   filter:saturate(1.05);
+}
+
+.register-card button[type="submit"]:hover{
+  box-shadow:none;
+  transform:translateY(-1px);
+  filter:none;
 }
 
 /* ERROR */
@@ -261,6 +341,34 @@
   grid-template-columns:repeat(2, minmax(260px,1fr));
 
   gap:20px 26px;
+}
+
+.register-form{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  gap:18px 22px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  color:#c7c7c7;
+  font-size:.92rem;
+}
+
+.field span{
+  font-size:.78rem;
+  letter-spacing:1.3px;
+  text-transform:uppercase;
+  color:#e5e8ef;
+  font-weight:700;
 }
 
 .step{
@@ -452,6 +560,84 @@
   color:#f5f5f5;
 }
 
+.action-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:6px;
+  align-items:center;
+}
+
+.action-row button{
+  flex:1;
+  min-width:220px;
+}
+
+.register-card button[type="submit"]{
+  background:linear-gradient(120deg, #1dd1a1, #11b0ff);
+  color:#041019;
+  box-shadow:none;
+}
+
+.login-card--login button[type="submit"]{
+  background:linear-gradient(120deg, #1dd1a1, #11b0ff);
+  color:#041019;
+  box-shadow:none;
+}
+
+.login-card--login button[type="submit"]:hover{
+  box-shadow:none;
+  transform:translateY(-1px);
+  filter:none;
+}
+
+.ghost{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.14);
+  color:#f5f5f5;
+  box-shadow:none;
+}
+
+.ghost:hover{
+  background:rgba(255,255,255,0.06);
+  transform:translateY(-1px);
+}
+
+.link-cta{
+  flex:0 0 auto;
+  min-width:unset;
+  background:none;
+  border:none;
+  color:#7ee1ff;
+  font-weight:700;
+  padding:0;
+  cursor:pointer;
+  text-decoration:none;
+  transition:color .16s ease, transform .16s ease;
+  display:inline-flex;
+  align-items:center;
+}
+.link-ctan{
+  flex:0 0 auto;
+  min-width:unset;
+  background:none;
+  border:none;
+  color:#7ee1ff;
+  font-weight:700;
+  padding:0;
+  cursor:pointer;
+  text-decoration:none;
+  transition:color .16s ease, transform .16s ease;
+  display:inline-flex;
+  align-items:center;
+}
+
+.link-ctan:hover{
+  color:#c9f40a;
+  transform:translateY(-1px);
+  text-decoration:none;
+}
+
 /* SELECT */
 
 .select-visible{
@@ -461,6 +647,11 @@
 
 .select-visible option{
   color:#111;
+}
+
+.disabled-field select{
+  opacity:0.6;
+  cursor:not-allowed;
 }
 
 /* PROGRESS BAR */

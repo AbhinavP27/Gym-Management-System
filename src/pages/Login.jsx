@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./styles/Login.css";
 
 const Login = () => {
@@ -42,54 +42,64 @@ const Login = () => {
   };
 
   return (
-    <div className="login-overlay" id="login">
-      <div className="login-card">
+    <div className="login-overlay register-overlay" id="login">
+      <div className="login-card register-card login-card--login">
         <button
           type="button"
           className="close-button"
           aria-label="Close login"
           onClick={() => navigate("/")}
         />
+        <p className="eyebrow">Welcome back</p>
         <h2>Urban Grind Login</h2>
+        <p className="subtext">Slip in, sign on, and pick up where you left off.</p>
 
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-          {errors.email && <p className="error-text">{errors.email}</p>}
-
-          <div className="password-row">
+        <form onSubmit={handleSubmit} className="login-form">
+          <label className="field">
+            <span>Email</span>
             <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              type="email"
+              placeholder="you@example.com"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <button
-              type="button"
-              className={`icon-toggle ${showPassword ? "active" : ""}`}
-              aria-label="Toggle password visibility"
-              onClick={() => setShowPassword((v) => !v)}
-            />
-          </div>
-          {errors.password && <p className="error-text">{errors.password}</p>}
+            {errors.email && <p className="error-text">{errors.email}</p>}
+          </label>
 
-          <button type="submit" className="lg-btn">Login</button>
+          <label className="field">
+            <span>Password</span>
+            <div className="password-row">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Your password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className={`icon-toggle inside ${showPassword ? "active" : ""}`}
+                aria-label="Toggle password visibility"
+                onClick={() => setShowPassword((v) => !v)}
+              />
+            </div>
+            {errors.password && <p className="error-text">{errors.password}</p>}
+          </label>
+
+          <div className="action-row">
+            <button type="submit" className="lg-btn">Login</button>
+           <p className="link-cta mt-3">Not joined yet?</p>
+            <Link to="/join" className="link-ctan">
+               Join now
+            </Link>
+          </div>
 
           <p className="policy-text">
             By logging in, you agree to our{" "}
             <a href="/privacy" onClick={(e) => {e.preventDefault(); setShowPrivacy(true);}}>
               Privacy Policy
             </a>.
-          </p>
-
-          <p className="policy-text">
-            New here? <a href="/join" className="join-inline">Join now</a>
           </p>
         </form>
 

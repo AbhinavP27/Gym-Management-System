@@ -65,11 +65,6 @@ const Navbar = () => {
             Login
           </Link>
         </li>
-        <li>
-          <Link to="/join" className="join-btn ">
-            Join Now
-          </Link>
-        </li>
       </ul>
     </div>
   );
