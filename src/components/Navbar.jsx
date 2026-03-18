@@ -1,27 +1,24 @@
 import React from "react";
 import "./style/Navbar.css";
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 // import logo from '../assets/logo-1.png'
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const lastScrollY = useRef(0);
 
   const controlNavbar = () => {
-    if (window.scrollY > lastScrollY) {
-      setShowNavbar(false); // scrolling down
-    } else {
-      setShowNavbar(true); // scrolling up
-    }
-    setLastScrollY(window.scrollY);
+    const currentY = window.scrollY;
+    setShowNavbar(currentY <= lastScrollY.current); // hide on scroll down
+    lastScrollY.current = currentY;
   };
 
   useEffect(() => {
     window.addEventListener("scroll", controlNavbar);
     return () => window.removeEventListener("scroll", controlNavbar);
-  }, [lastScrollY]);
+  }, []);
 
   return (
     <div className={`navbar shadow-lg ${showNavbar ? "show" : "hide"}`}>

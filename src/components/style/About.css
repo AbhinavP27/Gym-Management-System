@@ -29,7 +29,8 @@
 }
 
 .about{
-    background-image: url("../assets/gym6.png");
+    /* Use correct relative path from /src/components/style to /src/assets */
+    background-image: url("../../assets/gym6.png");
     background-size: cover;
     background-position: center;
     min-height: 100vh;
