@@ -42,7 +42,7 @@ const Hero = () => {
             </p>
 
             <div className="hero-buttons">
-              <button className="btn-primary">Start Training</button>
+              <a href="#plans"><button className="btn-primary">Start Training</button></a>
               <a href="#trainers"><button className="btn-secondary" >Meet Trainers</button></a>
             </div>
           </div>
@@ -60,7 +60,7 @@ const Hero = () => {
             </p>
 
             <div className="hero-buttons">
-              <button className="btn-primary">Join Now</button>
+              <a href="#plans"><button className="btn-primary">Join Now</button></a>
               <a href="#services"><button className="btn-secondary">View Programs</button></a>
             </div>
           </div>

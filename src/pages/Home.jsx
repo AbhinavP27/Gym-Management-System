@@ -7,12 +7,13 @@ import Services from '../components/Services'
 import Plans from '../components/Plans'
 import Testimonials from '../components/Testimonials'
 import Contacts from '../components/Contacts'
+import Navbar from '../components/Navbar'
 
 
 const Home = () => {
   return (
     <>
-
+        <Navbar />
         <Hero />
         <About />
         <Trainers/>

@@ -31,13 +31,13 @@ const Login = () => {
 
     // Example role detection (later from backend)
     if (email === "admin@urbangrind.com") {
-      navigate("/admin-dashboard");
+      navigate("/admin");
     } 
     else if (email === "trainer@urbangrind.com") {
-      navigate("/trainer-dashboard");
+      navigate("/trainer");
     } 
     else {
-      navigate("/user-dashboard");
+      navigate("/user");
     }
   };
 

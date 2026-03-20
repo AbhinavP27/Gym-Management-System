@@ -159,6 +159,8 @@
   font-size:28px;
   color:ghostwhite;
   cursor:pointer;
+  right: 15px;
+  position: absolute;
 }
 
 /* TABLET RESPONSIVE */
