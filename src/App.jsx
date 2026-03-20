@@ -9,6 +9,7 @@ import Reg from './pages/Reg'
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard'
 import { Toaster } from 'react-hot-toast'
 import UserDashboard from './pages/dashboard/user/UserDashboard'
+import TrainerDashboard from './pages/dashboard/trainer/TrainerDashboard'
 
 
 const App = () => {
@@ -29,8 +30,9 @@ const App = () => {
         <Route path='/join' element={<><Home /><Reg /></>} />
         <Route path='/admin' element={<AdminDashboard />} />
         <Route path='/user' element={<UserDashboard />} />
+        <Route path='/trainer' element={<TrainerDashboard />} />
       </Routes>
-      <Footer />
+      {/* <Footer /> */}
     </>
   )
 }

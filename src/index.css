@@ -82,3 +82,78 @@ html{
   margin-left: 0;
   padding: 20px;
 }
+
+
+
+.topbar {
+  height: 60px;
+  background: #020617;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-left h2 {
+  color: white;
+  font-size: 18px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Search */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f172a;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.search-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: white;
+}
+
+/* Icons */
+.icon {
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.icon:hover {
+  color: white;
+}
+
+/* Profile */
+.profile img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+/* Menu button */
+.menu-btn {
+  background: #0f172a;
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+

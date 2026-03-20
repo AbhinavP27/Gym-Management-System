@@ -1,69 +1,49 @@
 import { Link } from "react-router-dom";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./styl/Sidebar.css";
 
-const Sidebar = () => {
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
-  const [isOpen, setIsOpen] = useState(() => window.innerWidth > 768);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const mobile = window.innerWidth <= 768;
-      setIsMobile(mobile);
-      setIsOpen(mobile ? false : true);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+const Sidebar = ({ isMobile, isOpen, setIsOpen }) => {
+  const handleClose = () => {
+    if (isMobile) setIsOpen(false);
+  };
 
   return (
-    <>
-      {isMobile && (
-        <button className="menu-btn" onClick={() => setIsOpen((prev) => !prev)} aria-label="Toggle sidebar">
-          Menu
-        </button>
-      )}
+    <div className={`sidebar ${isOpen ? "open" : ""}`}>
+      <h2 className="sidebar-title">UrbanGrind</h2>
 
-      {isMobile && isOpen && <div className="overlay" onClick={() => setIsOpen(false)}></div>}
-
-      <div className={`sidebar ${isOpen ? "open" : ""}`}>
-        <h2 className="sidebar-title">UrbanGrind</h2>
-
-        <ul className="sidebar-menu">
-          <li>
-            <Link to="/admin" onClick={() => setIsOpen(false)}>
-              Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link to="/admin" onClick={() => setIsOpen(false)}>
-              Members
-            </Link>
-          </li>
-          <li>
-            <Link to="/trainer" onClick={() => setIsOpen(false)}>
-              Trainers
-            </Link>
-          </li>
-          <li>
-            <Link to="/trainer" onClick={() => setIsOpen(false)}>
-              Membership
-            </Link>
-          </li>
-          <li>
-            <Link to="/trainer" onClick={() => setIsOpen(false)}>
-              Settings
-            </Link>
-          </li>
-          <li>
-            <Link to="/login" className="logout">
-              Logout
-            </Link>
-          </li>
-        </ul>
-      </div>
-    </>
+      <ul className="sidebar-menu">
+        <li>
+          <Link to="/admin" onClick={handleClose}>
+            Dashboard
+          </Link>
+        </li>
+        <li>
+          <Link to="/admin" onClick={handleClose}>
+            Members
+          </Link>
+        </li>
+        <li>
+          <Link to="/trainer" onClick={handleClose}>
+            Trainers
+          </Link>
+        </li>
+        <li>
+          <Link to="/trainer" onClick={handleClose}>
+            Membership
+          </Link>
+        </li>
+        <li>
+          <Link to="/trainer" onClick={handleClose}>
+            Settings
+          </Link>
+        </li>
+        <li>
+          <Link to="/login" className="logout">
+            Logout
+          </Link>
+        </li>
+      </ul>
+    </div>
   );
 };
 
