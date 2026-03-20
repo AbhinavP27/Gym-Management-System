@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import "./styles/Login.css";
 
 const Login = () => {
@@ -39,6 +40,7 @@ const Login = () => {
     else {
       navigate("/user");
     }
+    toast.success("Login successful!");
   };
 
   return (

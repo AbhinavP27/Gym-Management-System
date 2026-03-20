@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import "./styles/Login.css";
 
 const plans = ["Basic", "Gold", "Diamond"];
@@ -7,6 +8,7 @@ const trainers = ["Smith Doe", "Emily Smith", "Michael John"];
 
 const Reg = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [form, setForm] = useState({
         fullName: "",
         email: "",
@@ -19,6 +21,24 @@ const Reg = () => {
     });
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
+
+    useEffect(() => {
+        const incomingPlan = location.state?.plan;
+        if (!incomingPlan) return;
+
+        setForm((prev) => {
+            const next = { ...prev, plan: incomingPlan };
+            if (incomingPlan === "Basic") {
+                next.trainer = "";
+            }
+            return next;
+        });
+
+        setErrors((prev) => {
+            const { plan, trainer, ...rest } = prev;
+            return rest;
+        });
+    }, [location.state?.plan]);
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phonePattern = /^[0-9]{10}$/;
@@ -67,8 +87,9 @@ const Reg = () => {
         setErrors(validationErrors);
         if (Object.keys(validationErrors).length) return;
 
-        alert("Registration submitted! Welcome aboard.");
-        navigate("/");
+        // alert("Registration submitted! Welcome aboard.");
+        toast.success("Registration successful!");
+        navigate("/login");
     };
 
     const needsTrainer = form.plan === "Gold" || form.plan === "Diamond";

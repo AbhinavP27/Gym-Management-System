@@ -78,3 +78,7 @@ html{
   background-color: linear-gradient(to right, #000000, #434343);
 }
 
+.main-content {
+  margin-left: 0;
+  padding: 20px;
+}

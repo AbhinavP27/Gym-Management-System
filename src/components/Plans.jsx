@@ -70,7 +70,7 @@ const Plans = () => {
             
             <button 
               className="plan-btn"
-              onClick={() => navigate('/join')}
+              onClick={() => navigate('/join', { state: { plan: plan.name } })}
             >
               Sign Up Now
             </button>
