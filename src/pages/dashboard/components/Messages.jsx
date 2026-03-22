@@ -1,9 +1,15 @@
-import React from 'react'
+import DashboardLayout from "../layouts/DashboardLayout";
+import ComingSoon from "./ComingSoon";
 
-const Messages = () => {
+const Reports = () => {
   return (
-    <div>Messages</div>
-  )
-}
+    <DashboardLayout role="trainer" >
+      <ComingSoon
+        title="Messages"
+        message="Message functionality is coming soon."
+      />
+    </DashboardLayout>
+  );
+};
 
-export default Messages
+export default Reports;

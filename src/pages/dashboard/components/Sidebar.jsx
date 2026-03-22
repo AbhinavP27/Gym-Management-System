@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import React from "react";
 import "./styl/Sidebar.css";
-import { sidebarConfig } from "../../../data/sidebarConfig.js";
+import { sidebarConfig } from "../../../data/sidebarConfig";
 
 const Sidebar = ({ role , isMobile, isOpen, setIsOpen }) => {
   const handleClose = () => {

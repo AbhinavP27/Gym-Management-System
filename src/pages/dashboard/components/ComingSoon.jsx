@@ -1,11 +1,22 @@
-import React from 'react'
-const Placeholder = ({ title }) => {
+import React from "react";
+import "./styl/ComingSoon.css";
+
+const ComingSoon = ({
+  title = "Coming Soon",
+  message = "We're building this page for you.",
+}) => {
   return (
-    <div style={{ color: "white" }}>
-      <h1>{title}</h1>
-      <p>Coming Soon...</p>
+    <div className="coming-wrapper">
+      <div className="coming-soon">
+        <div className="coming-soon__badge">🚧 In Progress</div>
+
+        <h1>{title}</h1>
+        <p>{message}</p>
+
+        <div className="coming-soon__glow" />
+      </div>
     </div>
   );
 };
 
-export default Placeholder;
+export default ComingSoon;
