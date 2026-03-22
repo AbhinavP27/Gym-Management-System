@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
-const DashboardLayout = ({ children }) => {
+const DashboardLayout = ({ children, role }) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768);
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth > 768);
 
@@ -27,8 +27,16 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <div className="dashboard-shell">
-      <Sidebar isMobile={isMobile} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      {isMobile && isSidebarOpen && <div className="overlay" onClick={closeSidebar} />}
+      <Sidebar
+        role={role}   // 🔥 FIXED
+        isMobile={isMobile}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+      />
+
+      {isMobile && isSidebarOpen && (
+        <div className="overlay" onClick={closeSidebar} />
+      )}
 
       <div className="content-area">
         <Topbar onToggle={toggleSidebar} isMobile={isMobile} />

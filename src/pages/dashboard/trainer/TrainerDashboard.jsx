@@ -3,7 +3,7 @@ import DashboardLayout from '../layouts/DashboardLayout'
 
 const TrainerDashboard = () => {
   return (
-    <DashboardLayout>
+    <DashboardLayout role="trainer">
       <h1>Trainer Dashboard</h1>
     </DashboardLayout>
   )

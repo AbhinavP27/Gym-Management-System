@@ -4,7 +4,7 @@ import DashboardLayout from '../layouts/DashboardLayout'
 const UserDashboard = () => {
   return (
     
-    <DashboardLayout>
+    <DashboardLayout role="user">
       <h1>User Dashboard</h1>
     </DashboardLayout>
 
