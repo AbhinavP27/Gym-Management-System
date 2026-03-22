@@ -21,9 +21,9 @@ const Topbar = ({ onToggle, isMobile }) => {
 
         <FiBell className="icon" size={20} />
 
-        <div className="profile">
+        {/* <div className="profile">
           <img src="https://i.pravatar.cc/40" alt="profile" />
-        </div>
+        </div> */}
       </div>
     </div>
   );

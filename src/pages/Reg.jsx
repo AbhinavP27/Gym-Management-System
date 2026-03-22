@@ -88,8 +88,8 @@ const Reg = () => {
         if (Object.keys(validationErrors).length) return;
 
         // alert("Registration submitted! Welcome aboard.");
-        toast.success("Registration successful!");
         navigate("/login");
+        toast.success("Registration successful!");
     };
 
     const needsTrainer = form.plan === "Gold" || form.plan === "Diamond";
@@ -233,7 +233,7 @@ const Reg = () => {
                         <button type="submit">Create Account</button>
                         <p className="link-cta mt-3">Already a gym buddy?</p>
                         <Link to="/login" className="link-ctan">
-                             Login now
+                            Login now
                         </Link>
                     </div>
                 </form>

@@ -15,13 +15,16 @@ import TrainerDashboard from './pages/dashboard/trainer/TrainerDashboard'
 const App = () => {
   return (
     <>
-      <Toaster position="bottom-right"
+      <Toaster
+        position="bottom-right"
+        containerStyle={{ zIndex: 120000 }}
         toastOptions={{
           style: {
             background: "#111827",
             color: "#fff",
           },
-        }} />
+        }}
+      />
       {/* <Navbar /> */}
 
       <Routes>
