@@ -10,11 +10,20 @@ import {
   FaRunning,
   FaClipboardList,
   FaComments,
+  FaHouseDamage,
+  FaHamsa,
+  FaHackerNews,
+  FaGalacticRepublic,
+  FaBomb,
+  FaElementor,
+  FaDashcube,
+  FaBlenderPhone,
+  FaHouseUser,
 } from "react-icons/fa";
 
 export const sidebarConfig = {
   admin: [
-    { name: "Dashboard", path: "/admin", icon: FaTachometerAlt },
+    { name: "Dashboard", path: "/admin", icon: FaHouseUser },
 
     { name: "Members", path: "/admin/members", icon: FaUsers },
     { name: "Trainers", path: "/admin/trainers", icon: FaDumbbell },
@@ -29,7 +38,7 @@ export const sidebarConfig = {
   ],
 
   trainer: [
-    { name: "Dashboard", path: "/trainer", icon: FaTachometerAlt },
+    { name: "Dashboard", path: "/trainer", icon: FaHouseUser },
 
     { name: "My Members", path: "/trainer/members", icon: FaUsers },
     { name: "Attendance", path: "/trainer/attendance", icon: FaCalendarCheck },
@@ -43,7 +52,7 @@ export const sidebarConfig = {
   ],
 
   user: [
-    { name: "Dashboard", path: "/user", icon: FaTachometerAlt },
+    { name: "Dashboard", path: "/user", icon: FaHouseUser },
 
     { name: "My Plan", path: "/user/plan", icon: FaClipboardList },
     { name: "Workout Schedule", path: "/user/workout", icon: FaDumbbell },

@@ -3,7 +3,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import { trainers as trainerPool } from "../../../data/dashboard";
 import "../components/styl/Members.css";
 
-const PLANS = ["Monthly", "Quarterly", "Half Year", "Yearly"];
+const PLANS = ["Basic", "Gold", "Diamond"];
 
 const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const futureDate = (daysAhead) => {

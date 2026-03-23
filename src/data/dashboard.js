@@ -37,8 +37,7 @@ export const members = [
 ]
 
 export const membershipChart = [
-  { name:"Monthly", value:40 },
-  { name:"Quarterly", value:30 },
-  { name:"Half Year", value:15 },
-  { name:"Yearly", value:15 }
+  { name:"Basic", value:40 },
+  { name:"Gold", value:30 },
+  { name:"Diamond", value:15 }
 ]
