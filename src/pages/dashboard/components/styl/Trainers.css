@@ -34,3 +34,31 @@
   border-radius: 14px;
   overflow: hidden;
 }
+
+.trainer-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 12px;
+  background: rgba(17, 24, 39, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+}
+
+.trainer-form input,
+.trainer-form select,
+.trainer-form button {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.7);
+  color: #e5e7eb;
+  padding: 10px 12px;
+}
+
+.trainer-form button {
+  border: none;
+  background: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
