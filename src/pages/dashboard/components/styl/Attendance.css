@@ -91,6 +91,14 @@
   transform: translateY(-1px);
 }
 
+.mark-btn--absent {
+  background: #f59e0b;
+}
+
+.mark-btn--absent:hover {
+  background: #d97706;
+}
+
 /* Empty State */
 .empty {
   text-align: center;
@@ -101,8 +109,10 @@
 .actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
+.actions input,
 .actions select,
 .actions button {
   padding: 8px 12px;
@@ -110,6 +120,16 @@
   background: #1e293b;
   color: white;
   border: none;
+}
+
+.actions input {
+  min-width: 260px;
+  outline: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.actions input::placeholder {
+  color: #94a3b8;
 }
 
 .stats-row {

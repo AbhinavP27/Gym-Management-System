@@ -1,23 +1,21 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { trainers as trainerData } from "../../../data/dashboard";
 import "../components/styl/Members.css";
 import "../components/styl/Trainers.css";
-
-const STATUSES = ["Active", "Busy", "On Leave"];
+import "../components/styl/DashboardOverview.css";
+import {
+  getTrainerStatusClass,
+  TRAINER_STATUSES,
+  useTrainerDirectory,
+} from "../../../context/TrainerContext";
 
 const Trainers = () => {
-  const [trainers, setTrainers] = useState(() =>
-    trainerData.map((trainer) => ({
-      ...trainer,
-      status: STATUSES[Math.floor(Math.random() * STATUSES.length)],
-    }))
-  );
+  const { trainers, addTrainer } = useTrainerDirectory();
   const [form, setForm] = useState({
     name: "",
     specialization: "",
     members: "",
-    status: STATUSES[0],
+    status: TRAINER_STATUSES[0],
   });
 
   const handleChange = (event) => {
@@ -32,24 +30,30 @@ const Trainers = () => {
     const specialization = form.specialization.trim();
     if (!name || !specialization) return;
 
-    setTrainers((current) => [
-      ...current,
-      {
-        id: current.length ? Math.max(...current.map((trainer) => trainer.id)) + 1 : 1,
-        name,
-        specialization,
-        members: Number(form.members) || 0,
-        status: form.status,
-      },
-    ]);
+    addTrainer({
+      name,
+      specialization,
+      members: form.members,
+      status: form.status,
+    });
 
     setForm({
       name: "",
       specialization: "",
       members: "",
-      status: STATUSES[0],
+      status: TRAINER_STATUSES[0],
     });
   };
+
+  const summary = useMemo(
+    () => ({
+      total: trainers.length,
+      active: trainers.filter((trainer) => trainer.status === "Active").length,
+      busy: trainers.filter((trainer) => trainer.status === "Busy").length,
+      onLeave: trainers.filter((trainer) => trainer.status === "On Leave").length,
+    }),
+    [trainers]
+  );
 
   return (
     <DashboardLayout role="admin">
@@ -59,8 +63,27 @@ const Trainers = () => {
             <p className="eyebrow">Admin - Trainers</p>
             <h1>Trainers</h1>
             <p className="subtext">
-              Overview of trainers, their specialization, member load, and status.
+              Trainer status, member load, and roster management are handled here.
             </p>
+          </div>
+        </div>
+
+        <div className="dashboard-overview__stats">
+          <div className="overview-stat">
+            <span>Total Trainers</span>
+            <strong>{summary.total}</strong>
+          </div>
+          <div className="overview-stat">
+            <span>Active</span>
+            <strong>{summary.active}</strong>
+          </div>
+          <div className="overview-stat">
+            <span>Busy</span>
+            <strong>{summary.busy}</strong>
+          </div>
+          <div className="overview-stat">
+            <span>On Leave</span>
+            <strong>{summary.onLeave}</strong>
           </div>
         </div>
 
@@ -88,7 +111,7 @@ const Trainers = () => {
             onChange={handleChange}
           />
           <select name="status" value={form.status} onChange={handleChange}>
-            {STATUSES.map((status) => (
+            {TRAINER_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {status}
               </option>
@@ -110,15 +133,7 @@ const Trainers = () => {
                 <span>{trainer.name}</span>
                 <span>{trainer.specialization}</span>
                 <span>{trainer.members}</span>
-                <span
-                  className={`pill ${
-                    trainer.status === "Active"
-                      ? "pill--green"
-                      : trainer.status === "Busy"
-                      ? "pill--blue"
-                      : "pill--amber"
-                  }`}
-                >
+                <span className={`pill ${getTrainerStatusClass(trainer.status)}`}>
                   {trainer.status}
                 </span>
               </div>
