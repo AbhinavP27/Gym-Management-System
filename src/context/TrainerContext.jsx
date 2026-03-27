@@ -9,6 +9,11 @@ import { trainers as initialTrainerRoster } from "../data/dashboard";
 
 const STORAGE_KEY = "urbangrind-trainer-roster";
 const TrainerContext = createContext(null);
+const TRAINER_NAME_MIGRATION = {
+  "Smith Doe": "Tharun Kumar",
+  "Emily Smith": "Varsha Tharun",
+  "Michael John": "Alen Mathew",
+};
 
 export const TRAINER_STATUSES = ["Active", "Busy", "On Leave"];
 
@@ -20,8 +25,13 @@ export const getTrainerStatusClass = (status) => {
 
 const normalizeTrainer = (trainer) => ({
   ...trainer,
+  name: TRAINER_NAME_MIGRATION[trainer.name] ?? trainer.name ?? "",
   specialization: trainer.specialization ?? trainer.role ?? "",
   members: Number(trainer.members) || 0,
+  image: trainer.image ?? "",
+  certificates: trainer.certificates ?? "",
+  experience: trainer.experience ?? "",
+  details: trainer.details ?? "",
   status: TRAINER_STATUSES.includes(trainer.status)
     ? trainer.status
     : TRAINER_STATUSES[0],
@@ -55,7 +65,11 @@ export const TrainerProvider = ({ children }) => {
   const [trainers, setTrainers] = useState(() => loadTrainerRoster());
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trainers));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trainers));
+    } catch (error) {
+      console.error("Failed to persist trainer roster", error);
+    }
   }, [trainers]);
 
   useEffect(() => {
@@ -79,7 +93,14 @@ export const TrainerProvider = ({ children }) => {
     );
   };
 
-  const addTrainer = ({ name, specialization, members, status }) => {
+  const addTrainer = ({
+    name,
+    specialization,
+    members,
+    image,
+    certificates,
+    experience,
+  }) => {
     setTrainers((current) => [
       ...current,
       {
@@ -88,18 +109,52 @@ export const TrainerProvider = ({ children }) => {
         role: specialization,
         specialization,
         members: Number(members) || 0,
-        status,
-        certificates: "",
-        experience: "",
+        image: image ?? "",
+        status: TRAINER_STATUSES[0],
+        certificates: certificates ?? "",
+        experience: experience ?? "",
         details: "",
       },
     ]);
+  };
+
+  const saveTrainer = ({
+    id,
+    name,
+    specialization,
+    members,
+    image,
+    certificates,
+    experience,
+  }) => {
+    setTrainers((current) =>
+      current.map((trainer) =>
+        trainer.id === id
+          ? {
+              ...trainer,
+              name,
+              role: specialization,
+              specialization,
+              members: Number(members) || 0,
+              image: image ?? trainer.image ?? "",
+              certificates: certificates ?? trainer.certificates ?? "",
+              experience: experience ?? trainer.experience ?? "",
+            }
+          : trainer
+      )
+    );
+  };
+
+  const deleteTrainer = (trainerId) => {
+    setTrainers((current) => current.filter((trainer) => trainer.id !== trainerId));
   };
 
   const value = useMemo(
     () => ({
       trainers,
       addTrainer,
+      saveTrainer,
+      deleteTrainer,
       updateTrainerStatus,
     }),
     [trainers]

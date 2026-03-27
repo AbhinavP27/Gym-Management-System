@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useMembershipPlans } from "../context/MembershipContext";
+import { useTrainerDirectory } from "../context/TrainerContext";
 import "./styles/Login.css";
-
-const plans = ["Basic", "Gold", "Diamond"];
-const trainers = ["Smith Doe", "Emily Smith", "Michael John"];
 
 const Reg = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { plans } = useMembershipPlans();
+    const { trainers } = useTrainerDirectory();
     const [form, setForm] = useState({
         fullName: "",
         email: "",
@@ -21,14 +22,17 @@ const Reg = () => {
     });
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
+    const selectedPlan = plans.find((plan) => plan.name === form.plan);
+    const needsTrainer = Boolean(selectedPlan?.trainerRequired);
 
     useEffect(() => {
         const incomingPlan = location.state?.plan;
         if (!incomingPlan) return;
+        const incomingPlanConfig = plans.find((plan) => plan.name === incomingPlan);
 
         setForm((prev) => {
             const next = { ...prev, plan: incomingPlan };
-            if (incomingPlan === "Basic") {
+            if (!incomingPlanConfig?.trainerRequired) {
                 next.trainer = "";
             }
             return next;
@@ -38,7 +42,7 @@ const Reg = () => {
             const { plan, trainer, ...rest } = prev;
             return rest;
         });
-    }, [location.state?.plan]);
+    }, [location.state?.plan, plans]);
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phonePattern = /^[0-9]{10}$/;
@@ -47,7 +51,8 @@ const Reg = () => {
         const { name, value } = e.target;
         setForm((prev) => {
             const next = { ...prev, [name]: value };
-            if (name === "plan" && value === "Basic") {
+            const nextPlan = name === "plan" ? plans.find((plan) => plan.name === value) : selectedPlan;
+            if (name === "plan" && !nextPlan?.trainerRequired) {
                 next.trainer = "";
             }
             return next;
@@ -75,8 +80,7 @@ const Reg = () => {
 
         if (!form.plan) newErrors.plan = "Choose a membership";
 
-        const needsTrainer = form.plan === "Gold" || form.plan === "Diamond";
-        if (needsTrainer && !form.trainer) newErrors.trainer = "Pick a trainer for Gold/Diamond plans";
+        if (needsTrainer && !form.trainer) newErrors.trainer = "Pick a trainer for plans that require one";
 
         return newErrors;
     };
@@ -91,8 +95,6 @@ const Reg = () => {
         navigate("/login");
         toast.success("Registration successful!");
     };
-
-    const needsTrainer = form.plan === "Gold" || form.plan === "Diamond";
 
     return (
         <div className="login-overlay register-overlay" id="join">
@@ -201,8 +203,8 @@ const Reg = () => {
                             <select name="plan" value={form.plan} onChange={handleChange} className="select-visible">
                                 <option value="">Select membership</option>
                                 {plans.map((plan) => (
-                                    <option key={plan} value={plan}>
-                                        {plan}
+                                    <option key={plan.id} value={plan.name}>
+                                        {plan.name}
                                     </option>
                                 ))}
                             </select>
@@ -218,10 +220,10 @@ const Reg = () => {
                                 disabled={!needsTrainer}
                                 className="select-visible"
                             >
-                                <option value="">{needsTrainer ? "Select trainer" : "Gold & Diamond only"}</option>
+                                <option value="">{needsTrainer ? "Select trainer" : "Trainer-supported plans only"}</option>
                                 {trainers.map((trainer) => (
-                                    <option key={trainer} value={trainer}>
-                                        {trainer}
+                                    <option key={trainer.id} value={trainer.name}>
+                                        {trainer.name}
                                     </option>
                                 ))}
                             </select>
