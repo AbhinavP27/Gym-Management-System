@@ -46,7 +46,7 @@ const Footer = () => {
       <FaFacebook />
     </a>
 
-    <a href="https://youtube.com/shorts/aCHdl3fhqtA?si=VWDUipjUijxIkljD" target="_blank" className='youtube'>
+    <a href="https://youtube.com" target="_blank" className='youtube'>
       <FaYoutube />
     </a>
   </div>

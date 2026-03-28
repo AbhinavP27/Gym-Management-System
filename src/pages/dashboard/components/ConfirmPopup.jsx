@@ -5,6 +5,7 @@ const ConfirmPopup = ({
   open,
   title,
   message,
+  badgeLabel = "Confirm delete",
   confirmLabel = "Delete",
   cancelLabel = "Cancel",
   onConfirm,
@@ -38,7 +39,7 @@ const ConfirmPopup = ({
         aria-labelledby="confirm-popup-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="confirm-popup__badge">Confirm delete</div>
+        <div className="confirm-popup__badge">{badgeLabel}</div>
         <h2 id="confirm-popup-title">{title}</h2>
         <p>{message}</p>
         <div className="confirm-popup__actions">

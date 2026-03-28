@@ -1,23 +1,27 @@
 import React, { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { members as memberRoster } from "../../../data/dashboard";
+import { useMembers } from "../../../context/MemberContext";
 import "../components/styl/Members.css";
 
 const normalizeSearch = (value = "") =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
 
 const Members = ({ role = "admin", userId = null }) => {
+  const { trainerId: trainerIdParam } = useParams();
+  const { members: memberRoster } = useMembers();
   const [query, setQuery] = useState("");
   const [planFilter, setPlanFilter] = useState("");
   const [trainerFilter, setTrainerFilter] = useState("");
+  const trainerId = Number(trainerIdParam ?? userId);
 
   const membersData = useMemo(() => {
     if (role === "trainer") {
-      return memberRoster.filter((member) => member.trainerId === userId);
+      return memberRoster.filter((member) => member.trainerId === trainerId);
     }
 
     return memberRoster;
-  }, [role, userId]);
+  }, [memberRoster, role, trainerId]);
 
   const planOptions = useMemo(
     () =>
@@ -56,7 +60,7 @@ const Members = ({ role = "admin", userId = null }) => {
   const eyebrow = isTrainerView ? "Trainer - My Members" : "Admin - Members";
   const subtext = isTrainerView
     ? `${membersData.length} assigned clients are listed here for the trainer workflow.`
-    : "Shared member roster used across admin and trainer attendance.";
+    : "Centralized member list for seamless admin and trainer attendance management.";
   const hasActiveFilters = Boolean(query || planFilter || trainerFilter);
   const emptyMessage = hasActiveFilters
     ? "No members match the current filters."

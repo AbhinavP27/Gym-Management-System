@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
+import { useMembers } from "../context/MemberContext";
+import { useTrainerDirectory } from "../context/TrainerContext";
 import "./styles/Login.css";
 
 const Login = () => {
@@ -10,6 +12,8 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPrivacy, setShowPrivacy] = useState(false);
   const navigate = useNavigate();
+  const { members } = useMembers();
+  const { trainers } = useTrainerDirectory();
 
   const validate = () => {
     const newErrors = {};
@@ -29,16 +33,33 @@ const Login = () => {
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password.trim();
+    const matchedTrainer = trainers.find(
+      (trainer) => trainer.email?.trim().toLowerCase() === normalizedEmail
+    );
+    const matchedMember = members.find(
+      (member) => member.email?.trim().toLowerCase() === normalizedEmail
+    );
+    const memberPasswordMismatch =
+      matchedMember &&
+      matchedMember.password?.trim() &&
+      matchedMember.password.trim() !== normalizedPassword;
 
-    // Example role detection (later from backend)
-    if (email === "admin@urbangrind.com") {
+    if (normalizedEmail === "admin@urbangrind.com") {
       navigate("/admin");
-    } 
-    else if (email === "trainer@urbangrind.com") {
-      navigate("/trainer");
-    } 
-    else {
-      navigate("/user");
+    } else if (matchedTrainer) {
+      navigate(`/trainer/${matchedTrainer.id}`);
+    } else if (normalizedEmail === "trainer@urbangrind.com" && trainers[0]) {
+      navigate(`/trainer/${trainers[0].id}`);
+    } else if (memberPasswordMismatch) {
+      toast.error("Invalid password for this member account.");
+      return;
+    } else if (matchedMember) {
+      navigate(`/user/${matchedMember.id}`);
+    } else {
+      toast.error("No account found for this email.");
+      return;
     }
     toast.success("Login successful!");
   };

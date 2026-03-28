@@ -73,7 +73,6 @@ const Trainers = () => {
     specialization: "",
     certificates: "",
     experience: "",
-    members: "",
     image: "",
     imageName: "",
   });
@@ -114,7 +113,6 @@ const Trainers = () => {
       specialization: "",
       certificates: "",
       experience: "",
-      members: "",
       image: "",
       imageName: "",
     });
@@ -131,7 +129,6 @@ const Trainers = () => {
       specialization: trainer.specialization,
       certificates: trainer.certificates ?? "",
       experience: trainer.experience ?? "",
-      members: String(trainer.members ?? ""),
       image: trainer.image ?? "",
       imageName: trainer.image ? "Current image selected" : "",
     });
@@ -165,7 +162,6 @@ const Trainers = () => {
         specialization,
         certificates: form.certificates.trim(),
         experience: form.experience.trim(),
-        members: form.members,
         image: form.image,
       });
     } else {
@@ -174,7 +170,6 @@ const Trainers = () => {
         specialization,
         certificates: form.certificates.trim(),
         experience: form.experience.trim(),
-        members: form.members,
         image: form.image,
       });
     }
@@ -200,7 +195,7 @@ const Trainers = () => {
             <p className="eyebrow">Admin - Trainers</p>
             <h1>Trainers</h1>
             <p className="subtext">
-              Trainer status, member load, and roster management are handled here.
+              Monitor trainer status, manage member load, and oversee member assignments.
             </p>
           </div>
         </div>
@@ -251,14 +246,6 @@ const Trainers = () => {
             type="text"
             placeholder="Experience"
             value={form.experience}
-            onChange={handleChange}
-          />
-          <input
-            name="members"
-            type="number"
-            min="0"
-            placeholder="Members"
-            value={form.members}
             onChange={handleChange}
           />
           <div className="trainer-file-field">

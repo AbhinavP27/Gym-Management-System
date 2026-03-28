@@ -6,9 +6,13 @@ import {
   useState,
 } from "react";
 import { trainers as initialTrainerRoster } from "../data/dashboard";
+import { useMembers } from "./MemberContext";
 
 const STORAGE_KEY = "urbangrind-trainer-roster";
 const TrainerContext = createContext(null);
+const TRAINER_SEED_BY_ID = new Map(
+  initialTrainerRoster.map((trainer) => [Number(trainer.id), trainer])
+);
 const TRAINER_NAME_MIGRATION = {
   "Smith Doe": "Tharun Kumar",
   "Emily Smith": "Varsha Tharun",
@@ -27,6 +31,13 @@ const normalizeTrainer = (trainer) => ({
   ...trainer,
   name: TRAINER_NAME_MIGRATION[trainer.name] ?? trainer.name ?? "",
   specialization: trainer.specialization ?? trainer.role ?? "",
+  email:
+    trainer.email?.trim() ||
+    TRAINER_SEED_BY_ID.get(Number(trainer.id))?.email?.trim() ||
+    `${(TRAINER_NAME_MIGRATION[trainer.name] ?? trainer.name ?? "trainer")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ".")
+      .replace(/(^\.|\.$)/g, "")}@urbangrind.com`,
   members: Number(trainer.members) || 0,
   image: trainer.image ?? "",
   certificates: trainer.certificates ?? "",
@@ -55,22 +66,51 @@ const loadTrainerRoster = () => {
       return fallback;
     }
 
-    return parsed.map(normalizeTrainer);
+    const normalizedStored = parsed.map(normalizeTrainer);
+    const storedById = new Map(normalizedStored.map((trainer) => [Number(trainer.id), trainer]));
+    const mergedSeedTrainers = fallback.map((seedTrainer) =>
+      normalizeTrainer({
+        ...seedTrainer,
+        ...storedById.get(Number(seedTrainer.id)),
+      })
+    );
+    const customTrainers = normalizedStored.filter(
+      (trainer) => !TRAINER_SEED_BY_ID.has(Number(trainer.id))
+    );
+
+    return [...mergedSeedTrainers, ...customTrainers];
   } catch {
     return fallback;
   }
 };
 
 export const TrainerProvider = ({ children }) => {
-  const [trainers, setTrainers] = useState(() => loadTrainerRoster());
+  const { members } = useMembers();
+  const [trainerRoster, setTrainerRoster] = useState(() => loadTrainerRoster());
+
+  const trainers = useMemo(() => {
+    const memberCountByTrainer = members.reduce((accumulator, member) => {
+      if (member.trainerId == null) {
+        return accumulator;
+      }
+
+      accumulator[member.trainerId] = (accumulator[member.trainerId] ?? 0) + 1;
+      return accumulator;
+    }, {});
+
+    return trainerRoster.map((trainer) => ({
+      ...trainer,
+      members: memberCountByTrainer[trainer.id] ?? 0,
+    }));
+  }, [members, trainerRoster]);
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trainers));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trainerRoster));
     } catch (error) {
       console.error("Failed to persist trainer roster", error);
     }
-  }, [trainers]);
+  }, [trainerRoster]);
 
   useEffect(() => {
     const handleStorage = (event) => {
@@ -78,7 +118,7 @@ export const TrainerProvider = ({ children }) => {
         return;
       }
 
-      setTrainers(loadTrainerRoster());
+      setTrainerRoster(loadTrainerRoster());
     };
 
     window.addEventListener("storage", handleStorage);
@@ -86,7 +126,7 @@ export const TrainerProvider = ({ children }) => {
   }, []);
 
   const updateTrainerStatus = (trainerId, status) => {
-    setTrainers((current) =>
+    setTrainerRoster((current) =>
       current.map((trainer) =>
         trainer.id === trainerId ? { ...trainer, status } : trainer
       )
@@ -96,19 +136,18 @@ export const TrainerProvider = ({ children }) => {
   const addTrainer = ({
     name,
     specialization,
-    members,
     image,
     certificates,
     experience,
   }) => {
-    setTrainers((current) => [
+    setTrainerRoster((current) => [
       ...current,
       {
         id: current.length ? Math.max(...current.map((trainer) => trainer.id)) + 1 : 1,
         name,
         role: specialization,
         specialization,
-        members: Number(members) || 0,
+        members: 0,
         image: image ?? "",
         status: TRAINER_STATUSES[0],
         certificates: certificates ?? "",
@@ -122,12 +161,11 @@ export const TrainerProvider = ({ children }) => {
     id,
     name,
     specialization,
-    members,
     image,
     certificates,
     experience,
   }) => {
-    setTrainers((current) =>
+    setTrainerRoster((current) =>
       current.map((trainer) =>
         trainer.id === id
           ? {
@@ -135,7 +173,6 @@ export const TrainerProvider = ({ children }) => {
               name,
               role: specialization,
               specialization,
-              members: Number(members) || 0,
               image: image ?? trainer.image ?? "",
               certificates: certificates ?? trainer.certificates ?? "",
               experience: experience ?? trainer.experience ?? "",
@@ -146,7 +183,9 @@ export const TrainerProvider = ({ children }) => {
   };
 
   const deleteTrainer = (trainerId) => {
-    setTrainers((current) => current.filter((trainer) => trainer.id !== trainerId));
+    setTrainerRoster((current) =>
+      current.filter((trainer) => trainer.id !== trainerId)
+    );
   };
 
   const value = useMemo(

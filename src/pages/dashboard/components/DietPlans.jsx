@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
+import ConfirmPopup from "./ConfirmPopup";
 import { useMembers } from "../../../context/MemberContext";
-import { useWorkoutPlans } from "../../../context/WorkoutPlanContext";
+import { useDietPlans } from "../../../context/DietPlanContext";
 import "../components/styl/WorkoutPlans.css";
 
 const normalizeSearch = (value = "") =>
@@ -23,14 +24,15 @@ const formatDate = (value) => {
   }).format(new Date(value));
 };
 
-const Workouts = ({ trainerId: trainerIdProp = null }) => {
+const DietPlans = ({ trainerId: trainerIdProp = null }) => {
   const { trainerId: trainerIdParam } = useParams();
   const { members: memberRoster } = useMembers();
-  const { muscleGroups, plansByMember, assignWorkouts } = useWorkoutPlans();
+  const { mealGroups, plansByMember, assignDiets } = useDietPlans();
   const [selectedMemberId, setSelectedMemberId] = useState("");
-  const [activeMuscleId, setActiveMuscleId] = useState(() => muscleGroups[0]?.id ?? "");
+  const [activeMealId, setActiveMealId] = useState(() => mealGroups[0]?.id ?? "");
   const [searchQuery, setSearchQuery] = useState("");
   const [draftSelections, setDraftSelections] = useState({});
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
   const trainerId = Number(trainerIdParam ?? trainerIdProp);
 
   const trainerMembers = useMemo(
@@ -52,116 +54,121 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
   }, [trainerMembers]);
 
   useEffect(() => {
-    if (!muscleGroups.length) {
-      setActiveMuscleId("");
+    if (!mealGroups.length) {
+      setActiveMealId("");
       return;
     }
 
-    setActiveMuscleId((current) =>
-      muscleGroups.some((group) => group.id === current) ? current : muscleGroups[0].id
+    setActiveMealId((current) =>
+      mealGroups.some((group) => group.id === current) ? current : mealGroups[0].id
     );
-  }, [muscleGroups]);
+  }, [mealGroups]);
 
   const selectedMember = trainerMembers.find(
     (member) => String(member.id) === String(selectedMemberId)
   );
-  const activeMuscle =
-    muscleGroups.find((group) => group.id === activeMuscleId) ?? muscleGroups[0];
+  const activeMealGroup =
+    mealGroups.find((group) => group.id === activeMealId) ?? mealGroups[0];
   const memberPlan =
     plansByMember[String(selectedMemberId)] ?? {
       groups: {},
       updatedAt: null,
     };
-  const assignedGroups = muscleGroups
+  const assignedGroups = mealGroups
     .map((group) => memberPlan.groups?.[group.id])
     .filter(Boolean);
-  const totalAssignedWorkouts = assignedGroups.reduce(
-    (count, group) => count + group.workouts.length,
+  const totalAssignedMeals = assignedGroups.reduce(
+    (count, group) => count + group.meals.length,
     0
   );
 
   const selectionKey =
-    selectedMember && activeMuscle ? `${selectedMember.id}-${activeMuscle.id}` : "";
-  const assignedWorkoutIds = activeMuscle
-    ? memberPlan.groups?.[activeMuscle.id]?.workouts?.map((workout) => workout.id) ?? []
+    selectedMember && activeMealGroup ? `${selectedMember.id}-${activeMealGroup.id}` : "";
+  const assignedMealIds = activeMealGroup
+    ? memberPlan.groups?.[activeMealGroup.id]?.meals?.map((meal) => meal.id) ?? []
     : [];
-  const selectedWorkoutIds = selectionKey
-    ? draftSelections[selectionKey] ?? assignedWorkoutIds
+  const selectedMealIds = selectionKey
+    ? draftSelections[selectionKey] ?? assignedMealIds
     : [];
 
-  const filteredWorkouts = useMemo(() => {
-    if (!activeMuscle) {
+  const filteredMeals = useMemo(() => {
+    if (!activeMealGroup) {
       return [];
     }
 
     const term = normalizeSearch(searchQuery);
-    return activeMuscle.workouts.filter((workout) => {
+    return activeMealGroup.meals.filter((meal) => {
       if (!term) {
         return true;
       }
 
-      return [
-        workout.name,
-        workout.equipment,
-        workout.difficulty,
-        workout.focus,
-        workout.prescription,
-      ].some((value) => normalizeSearch(value).includes(term));
+      return [meal.name, meal.calories, meal.timing, meal.goal, meal.portion].some((value) =>
+        normalizeSearch(value).includes(term)
+      );
     });
-  }, [activeMuscle, searchQuery]);
+  }, [activeMealGroup, searchQuery]);
 
-  const updateCurrentSelection = (nextWorkoutIds) => {
+  const updateCurrentSelection = (nextMealIds) => {
     if (!selectionKey) {
       return;
     }
 
     setDraftSelections((current) => ({
       ...current,
-      [selectionKey]: nextWorkoutIds,
+      [selectionKey]: nextMealIds,
     }));
   };
 
-  const toggleWorkout = (workoutId) => {
-    const nextWorkoutIds = selectedWorkoutIds.includes(workoutId)
-      ? selectedWorkoutIds.filter((id) => id !== workoutId)
-      : [...selectedWorkoutIds, workoutId];
+  const toggleMeal = (mealId) => {
+    const nextMealIds = selectedMealIds.includes(mealId)
+      ? selectedMealIds.filter((id) => id !== mealId)
+      : [...selectedMealIds, mealId];
 
-    updateCurrentSelection(nextWorkoutIds);
+    updateCurrentSelection(nextMealIds);
   };
 
   const handleSelectAll = () => {
-    if (!activeMuscle) {
+    if (!activeMealGroup) {
       return;
     }
 
-    updateCurrentSelection(activeMuscle.workouts.map((workout) => workout.id));
+    updateCurrentSelection(activeMealGroup.meals.map((meal) => meal.id));
+  };
+
+  const performClearSelection = () => {
+    updateCurrentSelection([]);
+    setConfirmClearOpen(false);
   };
 
   const handleClearSelection = () => {
-    updateCurrentSelection([]);
-  };
-
-  const handleAssign = () => {
-    if (!selectedMember || !activeMuscle) {
-      toast.error("Select a member and muscle group first.");
+    if (!selectedMealIds.length) {
       return;
     }
 
-    const selectedWorkouts = activeMuscle.workouts.filter((workout) =>
-      selectedWorkoutIds.includes(workout.id)
+    setConfirmClearOpen(true);
+  };
+
+  const handleAssign = () => {
+    if (!selectedMember || !activeMealGroup) {
+      toast.error("Select a member and meal slot first.");
+      return;
+    }
+
+    const selectedMeals = activeMealGroup.meals.filter((meal) =>
+      selectedMealIds.includes(meal.id)
     );
 
-    assignWorkouts({
+    assignDiets({
       userId: selectedMember.id,
       trainerId,
-      muscleGroup: activeMuscle,
-      workouts: selectedWorkouts,
+      mealGroup: activeMealGroup,
+      meals: selectedMeals,
     });
 
     toast.success(
-      selectedWorkouts.length
-        ? `${selectedWorkouts.length} ${activeMuscle.name.toLowerCase()} workouts saved for ${selectedMember.name}.`
-        : `${activeMuscle.name} workouts cleared for ${selectedMember.name}.`
+      selectedMeals.length
+        ? `${selectedMeals.length} ${activeMealGroup.name.toLowerCase()} items saved for ${selectedMember.name}.`
+        : `${activeMealGroup.name} items cleared for ${selectedMember.name}.`
     );
   };
 
@@ -171,15 +178,15 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
         <div className="workout-page">
           <div className="workout-hero">
             <div>
-              <p className="eyebrow">Trainer - Workout Plans</p>
-              <h1>Workout Plans</h1>
+              <p className="eyebrow">Trainer - Diet Plans</p>
+              <h1>Diet Plans</h1>
               <p className="subtext">
-                Assignments appear here once members are connected to this trainer.
+                Diet assignments appear here once members are connected to this trainer.
               </p>
             </div>
           </div>
           <div className="workout-empty">
-            No members are assigned to this trainer yet, so there is nobody to push workouts to.
+            No members are assigned to this trainer yet, so there is nobody to push diet plans to.
           </div>
         </div>
       </DashboardLayout>
@@ -191,10 +198,10 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
       <div className="workout-page">
         <div className="workout-hero">
           <div>
-            <p className="eyebrow">Trainer - Workout Plans</p>
-            <h1>Assign Muscle-Based Workout Plans</h1>
+            <p className="eyebrow">Trainer - Diet Plans</p>
+            <h1>Assign Meal-Based Diet Plans</h1>
             <p className="subtext">
-              Pick a member, click a muscle group, select the workouts, and push them.
+              Pick a member, select a meal slot, choose diet items, and push them.
             </p>
           </div>
           <div className="workout-hero__meta">
@@ -205,16 +212,16 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
 
         <div className="workout-stats">
           <div className="workout-stat">
-            <span>Muscle Groups</span>
-            <strong>{muscleGroups.length}</strong>
+            <span>Meal Slots</span>
+            <strong>{mealGroups.length}</strong>
           </div>
           <div className="workout-stat">
-            <span>Active Group Workouts</span>
-            <strong>{activeMuscle?.workouts.length ?? 0}</strong>
+            <span>Active Slot Items</span>
+            <strong>{activeMealGroup?.meals.length ?? 0}</strong>
           </div>
           <div className="workout-stat">
             <span>{selectedMember?.name ?? "Member"} Assigned</span>
-            <strong>{totalAssignedWorkouts}</strong>
+            <strong>{totalAssignedMeals}</strong>
           </div>
         </div>
 
@@ -235,10 +242,10 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
             </label>
 
             <label className="workout-field workout-field--search">
-              <span>Search workouts</span>
+              <span>Search meal suggestions</span>
               <input
                 type="search"
-                placeholder="Bench press, cable, beginner..."
+                placeholder="Oats, high protein, 400 kcal..."
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
@@ -253,7 +260,7 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
               Clear
             </button>
             <button type="button" className="workout-button" onClick={handleAssign}>
-              Push to My Workout
+              Push to My Diet
             </button>
           </div>
         </div>
@@ -261,22 +268,22 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
         <div className="workout-layout">
           <aside className="workout-card workout-card--muscles">
             <div className="workout-card__head">
-              <h2>Muscle Groups</h2>
-              {/* <p>Click a muscle to load its workout list.</p> */}
+              <h2>Meal Slots</h2>
+              {/* <p>Click a meal slot to load its diet list.</p> */}
             </div>
 
             <div className="muscle-group-list">
-              {muscleGroups.map((group) => {
-                const savedCount = memberPlan.groups?.[group.id]?.workouts?.length ?? 0;
+              {mealGroups.map((group) => {
+                const savedCount = memberPlan.groups?.[group.id]?.meals?.length ?? 0;
 
                 return (
                   <button
                     key={group.id}
                     type="button"
                     className={`muscle-group-button ${
-                      group.id === activeMuscleId ? "muscle-group-button--active" : ""
+                      group.id === activeMealId ? "muscle-group-button--active" : ""
                     }`}
-                    onClick={() => setActiveMuscleId(group.id)}
+                    onClick={() => setActiveMealId(group.id)}
                   >
                     <div>
                       <strong>{group.name}</strong>
@@ -292,47 +299,47 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
           <section className="workout-card workout-card--catalog">
             <div className="workout-card__head">
               <div>
-                <h2>{activeMuscle?.name ?? "Workouts"}</h2>
-                <p>{activeMuscle?.description}</p>
+                <h2>{activeMealGroup?.name ?? "Diet Items"}</h2>
+                <p>{activeMealGroup?.description}</p>
               </div>
               <div className="workout-card__summary">
-                <span>{filteredWorkouts.length} visible</span>
-                <strong>{selectedWorkoutIds.length} selected</strong>
+                <span>{filteredMeals.length} visible</span>
+                <strong>{selectedMealIds.length} selected</strong>
               </div>
             </div>
 
             <div className="workout-grid">
-              {filteredWorkouts.map((workout) => {
-                const isSelected = selectedWorkoutIds.includes(workout.id);
+              {filteredMeals.map((meal) => {
+                const isSelected = selectedMealIds.includes(meal.id);
 
                 return (
                   <label
-                    key={workout.id}
+                    key={meal.id}
                     className={`workout-item ${isSelected ? "workout-item--selected" : ""}`}
                   >
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => toggleWorkout(workout.id)}
+                      onChange={() => toggleMeal(meal.id)}
                     />
                     <div className="workout-item__body">
                       <div className="workout-item__top">
-                        <h3>{workout.name}</h3>
-                        <span className="pill pill--muted">{workout.difficulty}</span>
+                        <h3>{meal.name}</h3>
+                        <span className="pill pill--muted">{meal.calories}</span>
                       </div>
-                      <p>{workout.focus}</p>
+                      <p>{meal.goal}</p>
                       <div className="workout-item__meta">
-                        <span>{workout.equipment}</span>
-                        <span>{workout.prescription}</span>
+                        <span>{meal.timing}</span>
+                        <span>{meal.portion}</span>
                       </div>
                     </div>
                   </label>
                 );
               })}
 
-              {filteredWorkouts.length === 0 && (
+              {filteredMeals.length === 0 && (
                 <div className="workout-empty">
-                  No workouts match the current search for this muscle group.
+                  No meal suggestions match the current search for this slot.
                 </div>
               )}
             </div>
@@ -340,16 +347,16 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
 
           <aside className="workout-card workout-card--summary">
             <div className="workout-card__head">
-              <h2>{selectedMember?.name} - My Workout</h2>
+              <h2>{selectedMember?.name} - My Diet</h2>
               {/* <p>This is what will appear on the user dashboard.</p> */}
             </div>
 
             <div className="assigned-group-list">
               {assignedGroups.map((group) => (
-                <div key={group.muscleId} className="assigned-group">
+                <div key={group.mealId} className="assigned-group">
                   <div className="assigned-group__head">
-                    <strong>{group.muscleName}</strong>
-                    <span>{group.workouts.length} workouts</span>
+                    <strong>{group.mealName}</strong>
+                    <span>{group.meals.length} items</span>
                   </div>
                   <p>{group.description}</p>
                 </div>
@@ -357,15 +364,25 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
 
               {assignedGroups.length === 0 && (
                 <div className="workout-empty">
-                  No workouts have been pushed to this member yet.
+                  No diet items have been pushed to this member yet.
                 </div>
               )}
             </div>
           </aside>
         </div>
       </div>
+
+      <ConfirmPopup
+        open={confirmClearOpen}
+        badgeLabel="Confirm clear"
+        title="Clear selected diet items?"
+        message="This removes the currently selected items from the draft for this meal slot. Click Push to My Diet to save the cleared state."
+        confirmLabel="Clear items"
+        onConfirm={performClearSelection}
+        onCancel={() => setConfirmClearOpen(false)}
+      />
     </DashboardLayout>
   );
 };
 
-export default Workouts;
+export default DietPlans;

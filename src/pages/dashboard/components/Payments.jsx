@@ -1,9 +1,9 @@
 import DashboardLayout from "../layouts/DashboardLayout";
 import ComingSoon from "./ComingSoon";
 
-const Payments = () => {
+const Payments = ({ role }) => {
   return (
-    <DashboardLayout role="admin">
+    <DashboardLayout role={role}>
       <ComingSoon
         title="Payments"
         message="Payment and billing management will arrive soon."

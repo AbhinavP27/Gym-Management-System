@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useMembershipPlans } from "../context/MembershipContext";
+import { useMembers } from "../context/MemberContext";
 import { useTrainerDirectory } from "../context/TrainerContext";
 import "./styles/Login.css";
 
@@ -9,6 +10,7 @@ const Reg = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { plans } = useMembershipPlans();
+    const { registerMember, isEmailTaken } = useMembers();
     const { trainers } = useTrainerDirectory();
     const [form, setForm] = useState({
         fullName: "",
@@ -46,6 +48,17 @@ const Reg = () => {
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phonePattern = /^[0-9]{10}$/;
+    const isReservedEmail = (email) => {
+        const normalizedEmail = email.trim().toLowerCase();
+
+        if (normalizedEmail === "admin@urbangrind.com") {
+            return true;
+        }
+
+        return trainers.some(
+            (trainer) => trainer.email?.trim().toLowerCase() === normalizedEmail
+        );
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -66,6 +79,9 @@ const Reg = () => {
 
         if (!form.email.trim()) newErrors.email = "Email is required";
         else if (!emailPattern.test(form.email)) newErrors.email = "Enter a valid email";
+        else if (isEmailTaken(form.email) || isReservedEmail(form.email)) {
+            newErrors.email = "Email already exists. Use a unique email.";
+        }
 
         if (!form.phone.trim()) newErrors.phone = "Phone is required";
         else if (!phonePattern.test(form.phone)) newErrors.phone = "Enter exactly 10 digits";
@@ -90,10 +106,38 @@ const Reg = () => {
         const validationErrors = validate();
         setErrors(validationErrors);
         if (Object.keys(validationErrors).length) return;
+        const selectedTrainer = trainers.find(
+            (trainer) => String(trainer.id) === String(form.trainer)
+        );
+        const result = registerMember({
+            name: form.fullName,
+            email: form.email,
+            password: form.password,
+            phone: form.phone,
+            gender: form.gender,
+            plan: form.plan,
+            trainerId: needsTrainer ? selectedTrainer?.id ?? null : null,
+            trainer: needsTrainer ? selectedTrainer?.name ?? "" : "",
+        });
 
-        // alert("Registration submitted! Welcome aboard.");
+        if (!result.ok) {
+            toast.error(result.error);
+            return;
+        }
+
         navigate("/login");
-        toast.success("Registration successful!");
+        toast.success("Registration successful! Use your email to log in.");
+        setForm({
+            fullName: "",
+            email: "",
+            phone: "",
+            password: "",
+            confirmPassword: "",
+            gender: "",
+            plan: "",
+            trainer: "",
+        });
+        setErrors({});
     };
 
     return (
@@ -222,7 +266,7 @@ const Reg = () => {
                             >
                                 <option value="">{needsTrainer ? "Select trainer" : "Trainer-supported plans only"}</option>
                                 {trainers.map((trainer) => (
-                                    <option key={trainer.id} value={trainer.name}>
+                                    <option key={trainer.id} value={trainer.id}>
                                         {trainer.name}
                                     </option>
                                 ))}

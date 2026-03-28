@@ -112,9 +112,9 @@ const MembershipPlans = () => {
           <div>
             <p className="eyebrow">Admin - Membership Plans</p>
             <h1>Membership Plans</h1>
-            <p className="subtext">
+            {/* <p className="subtext">
               Add or edit plans here. Changes update the home page and join form from the same shared source.
-            </p>
+            </p> */}
           </div>
         </div>
 

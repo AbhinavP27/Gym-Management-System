@@ -1,14 +1,18 @@
 import DashboardLayout from "../layouts/DashboardLayout";
+import { Link, useParams } from "react-router-dom";
 import {
   getTrainerStatusClass,
   TRAINER_STATUSES,
   useTrainerDirectory,
 } from "../../../context/TrainerContext";
 import "../components/styl/DashboardOverview.css";
+import "../components/styl/WorkoutPlans.css";
 
-const TrainerDashboard = ({ userId }) => {
+const TrainerDashboard = ({ userId = null }) => {
+  const { trainerId: trainerIdParam } = useParams();
   const { trainers, updateTrainerStatus } = useTrainerDirectory();
-  const trainer = trainers.find((item) => item.id === userId);
+  const trainerId = Number(trainerIdParam ?? userId);
+  const trainer = trainers.find((item) => item.id === trainerId);
 
   if (!trainer) {
     return (
@@ -35,9 +39,9 @@ const TrainerDashboard = ({ userId }) => {
           <div>
             <p className="eyebrow">Trainer Dashboard</p>
             <h1>{trainer.name}</h1>
-            <p className="subtext">
+            {/* <p className="subtext">
               Update your status manually. The admin dashboard uses the same value.
-            </p>
+            </p> */}
           </div>
           <span className={`pill ${getTrainerStatusClass(trainer.status)}`}>
             {trainer.status}
@@ -76,6 +80,18 @@ const TrainerDashboard = ({ userId }) => {
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="dashboard-panel">
+          <p className="eyebrow">Diet Plans</p>
+          <h2>Assign Meal Plans</h2>
+          <p className="subtext">
+            Push breakfast, lunch, pre-workout, and dinner recommendations to your assigned
+            members from the diet planner.
+          </p>
+          <Link to={`/trainer/${trainer.id}/diets`} className="workout-link">
+            Open Diet Planner
+          </Link>
         </div>
       </div>
     </DashboardLayout>

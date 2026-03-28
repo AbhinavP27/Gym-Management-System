@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
 import { PieChart, Pie, Tooltip, Cell } from "recharts";
-import { members as memberRoster, trainers as trainerRoster } from "../../../data/dashboard";
+import { useAttendance } from "../../../context/AttendanceContext";
 import "../components/styl/Attendance.css";
 import DashboardLayout from "../layouts/DashboardLayout";
 
@@ -14,35 +15,13 @@ const getToday = () => new Date().toISOString().split("T")[0];
 const normalizeSearch = (value = "") =>
   value.trim().toLowerCase().replace(/\s+/g, " ");
 
-const buildAttendanceRoster = () => {
-  const today = getToday();
-
-  return [
-    ...trainerRoster.map((trainer, index) => ({
-      id: `trainer-${trainer.id}`,
-      userId: trainer.id,
-      name: trainer.name,
-      role: "trainer",
-      trainerId: null,
-      date: today,
-      status: index % 2 === 0 ? "Present" : "Absent",
-    })),
-    ...memberRoster.map((member, index) => ({
-      id: `member-${member.id}`,
-      userId: member.id,
-      name: member.name,
-      role: "member",
-      trainerId: member.trainerId,
-      date: today,
-      status: index % 4 === 0 ? "Absent" : "Present",
-    })),
-  ];
-};
-
 const Attendance = ({ role, userId }) => {
-  const [attendance, setAttendance] = useState(() => buildAttendanceRoster());
+  const { trainerId: trainerIdParam, userId: userIdParam } = useParams();
+  const { attendance, toggleAttendanceStatus } = useAttendance();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const trainerId = Number(trainerIdParam ?? userId);
+  const resolvedUserId = Number(userIdParam ?? userId);
 
   const filtered = useMemo(() => {
     let data = attendance;
@@ -53,13 +32,13 @@ const Attendance = ({ role, userId }) => {
 
     if (role === "trainer") {
       data = data.filter(
-        (entry) => entry.role === "member" && entry.trainerId === userId
+        (entry) => entry.role === "member" && entry.trainerId === trainerId
       );
     }
 
     if (role === "user") {
       data = data.filter(
-        (entry) => entry.role === "member" && entry.userId === userId
+        (entry) => entry.role === "member" && entry.userId === resolvedUserId
       );
     }
 
@@ -91,7 +70,7 @@ const Attendance = ({ role, userId }) => {
     }
 
     return data;
-  }, [attendance, filter, query, role, userId]);
+  }, [attendance, filter, query, resolvedUserId, role, trainerId]);
 
   const stats = useMemo(() => {
     const present = filtered.filter((entry) => entry.status === "Present").length;
@@ -102,20 +81,6 @@ const Attendance = ({ role, userId }) => {
       { name: "Absent", value: absent },
     ];
   }, [filtered]);
-
-  const toggleAttendanceStatus = (id) => {
-    setAttendance((current) =>
-      current.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: item.status === "Present" ? "Absent" : "Present",
-            }
-          : item
-      )
-    );
-  };
-
   const exportCSV = () => {
     const rows = [
       ["Name", "Role", "Date", "Status"],
