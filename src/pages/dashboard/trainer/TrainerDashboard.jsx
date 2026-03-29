@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import toast from "react-hot-toast";
+import { FaTrash } from "react-icons/fa";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -19,7 +20,7 @@ import "../components/styl/Profile.css";
 const TrainerDashboard = ({ userId = null }) => {
   const { trainerId: trainerIdParam } = useParams();
   const { trainers, updateTrainerStatus } = useTrainerDirectory();
-  const { planRequests, reviewPlanChangeRequest } = usePlanRequests();
+  const { planRequests, reviewPlanChangeRequest, removePlanChangeRequest } = usePlanRequests();
   const trainerId = Number(trainerIdParam ?? userId);
   const trainer = trainers.find((item) => item.id === trainerId);
   const trainerPlanRequests = useMemo(
@@ -53,6 +54,21 @@ const TrainerDashboard = ({ userId = null }) => {
     }
 
     toast.success("Plan change request rejected by trainer.");
+  };
+
+  const handlePlanRequestRemove = (request) => {
+    const result = removePlanChangeRequest({
+      requestId: request.id,
+      actorRole: "trainer",
+      trainerId,
+    });
+
+    if (!result?.ok) {
+      toast.error(result?.error || "Unable to remove plan change request.");
+      return;
+    }
+
+    toast.success(`Plan change request from ${request.memberName} removed.`);
   };
 
   if (!trainer) {
@@ -150,6 +166,14 @@ const TrainerDashboard = ({ userId = null }) => {
                     <span className={`pill ${getDecisionPillClass(request.status)}`}>
                       {getDecisionLabel(request.status)}
                     </span>
+                    <button
+                      type="button"
+                      className="admin-item-remove"
+                      aria-label={`Remove plan change request from ${request.memberName}`}
+                      onClick={() => handlePlanRequestRemove(request)}
+                    >
+                      <FaTrash aria-hidden="true" />
+                    </button>
                   </div>
                 </div>
 

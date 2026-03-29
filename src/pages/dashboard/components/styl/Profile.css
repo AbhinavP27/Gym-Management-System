@@ -280,6 +280,10 @@
   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
+.admin-item-remove svg {
+  font-size: 14px;
+}
+
 .admin-item-remove:hover {
   background: rgba(239, 68, 68, 0.24);
   color: #fecaca;

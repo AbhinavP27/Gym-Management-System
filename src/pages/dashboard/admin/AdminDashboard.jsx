@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import toast from "react-hot-toast";
+import { FaTrash } from "react-icons/fa";
 import {
   CartesianGrid,
   Cell,
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
   const { plans } = useMembershipPlans();
   const { trainers } = useTrainerDirectory();
   const { consultationRequests, removeConsultationRequest } = useConsultations();
-  const { planRequests, reviewPlanChangeRequest } = usePlanRequests();
+  const { planRequests, reviewPlanChangeRequest, removePlanChangeRequest } = usePlanRequests();
 
   const feedbackEntries = useMemo(
     () =>
@@ -157,6 +158,20 @@ const AdminDashboard = () => {
     toast.success("Plan change request rejected by admin.");
   };
 
+  const handlePlanRequestRemove = (request) => {
+    const result = removePlanChangeRequest({
+      requestId: request.id,
+      actorRole: "admin",
+    });
+
+    if (!result?.ok) {
+      toast.error(result?.error || "Unable to remove plan change request.");
+      return;
+    }
+
+    toast.success(`Plan change request from ${request.memberName} removed.`);
+  };
+
   return (
     <DashboardLayout role="admin">
       <div className="dashboard-overview">
@@ -227,6 +242,14 @@ const AdminDashboard = () => {
                       <span className={`pill ${getDecisionPillClass(request.status)}`}>
                         {getDecisionLabel(request.status)}
                       </span>
+                      <button
+                        type="button"
+                        className="admin-item-remove"
+                        aria-label={`Remove plan change request from ${request.memberName}`}
+                        onClick={() => handlePlanRequestRemove(request)}
+                      >
+                        <FaTrash aria-hidden="true" />
+                      </button>
                     </div>
                   </div>
 
@@ -299,7 +322,7 @@ const AdminDashboard = () => {
                         aria-label={`Remove consultation request from ${request.name}`}
                         onClick={() => handleConsultationRemove(request.id)}
                       >
-                        &times;
+                        <FaTrash aria-hidden="true" />
                       </button>
                     </div>
                   </div>
@@ -425,7 +448,7 @@ const AdminDashboard = () => {
                         aria-label={`Remove feedback from ${entry.memberName}`}
                         onClick={() => handleFeedbackRemove(entry)}
                       >
-                        &times;
+                        <FaTrash aria-hidden="true" />
                       </button>
                     </div>
                   </div>

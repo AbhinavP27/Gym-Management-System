@@ -2,7 +2,7 @@ import React from "react";
 import Carousel from "react-bootstrap/esm/Carousel";
 
 import hero1 from "../assets/gym3.png";
-import hero2 from "../assets/gym4.png";
+import hero2 from "../assets/gym9.png";
 import hero3 from "../assets/gym5.png";
 
 import "./style/Hero.css";

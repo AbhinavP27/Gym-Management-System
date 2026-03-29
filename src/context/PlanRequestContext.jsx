@@ -284,11 +284,51 @@ export const PlanRequestProvider = ({ children }) => {
     return actionResult;
   };
 
+  const removePlanChangeRequest = ({ requestId, actorRole, trainerId = null }) => {
+    let actionResult = {
+      ok: false,
+      error: "Plan change request was not found.",
+    };
+
+    setPlanRequests((current) =>
+      current.filter((request) => {
+        if (request.id !== requestId) {
+          return true;
+        }
+
+        if (actorRole === "trainer" && Number(trainerId) !== request.trainerId) {
+          actionResult = {
+            ok: false,
+            error: "Only the assigned trainer can remove this request.",
+          };
+          return true;
+        }
+
+        if (!["admin", "trainer"].includes(actorRole)) {
+          actionResult = {
+            ok: false,
+            error: "Invalid remove action.",
+          };
+          return true;
+        }
+
+        actionResult = {
+          ok: true,
+          request,
+        };
+        return false;
+      })
+    );
+
+    return actionResult;
+  };
+
   const value = useMemo(
     () => ({
       planRequests,
       submitPlanChangeRequest,
       reviewPlanChangeRequest,
+      removePlanChangeRequest,
     }),
     [planRequests]
   );
