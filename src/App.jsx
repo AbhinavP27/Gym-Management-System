@@ -32,6 +32,7 @@ import UserPlan from './pages/dashboard/components/UserPlan'
 import UserProfile from './pages/dashboard/user/UserProfile'
 import DietPlans from './pages/dashboard/components/DietPlans'
 import UserDiet from './pages/dashboard/components/UserDiet'
+import { PlanRequestProvider } from './context/PlanRequestContext'
 
 const App = () => {
   return (
@@ -50,51 +51,53 @@ const App = () => {
 
       <MembershipProvider>
         <MemberProvider>
-          <ConsultationProvider>
-            <TrainerProvider>
-              <AttendanceProvider>
-                <WorkoutPlanProvider>
-                  <DietPlanProvider>
-                    <ProgressProvider>
-                      <Routes>
-                        <Route path='/' element={<Home />} />
-                        <Route path='/login' element={<><Home /><Login /></>} />
-                        <Route path='/join' element={<><Home /><Reg /></>} />
-                        
-                        <Route path='/admin' element={<AdminDashboard />} />
-                        <Route path='/admin/members' element={<Members role="admin" />} />
-                        <Route path='/admin/trainers' element={<Trainers />} />
-                        <Route path='/admin/membership' element={<MembershipPlans />} />
-                        <Route path='/admin/reports' element={<Reports />} />
-                        <Route path='/admin/payments' element={<Payments role="admin" />} />
-                        <Route path='/admin/settings' element={<Settings role="admin" />} />
-                        <Route path='/admin/attendance' element={<Attendance role="admin" />} />
-                        
-                        <Route path='/user/:userId' element={<UserDashboard />} />
-                        <Route path='/user/:userId/plan' element={<UserPlan />} />
-                        <Route path='/user/:userId/workout' element={<UserWorkout />} />
-                        <Route path='/user/:userId/diet' element={<UserDiet />} />
-                        <Route path='/user/:userId/progress' element={<Progress role="user" />} />
-                        <Route path='/user/:userId/attendance' element={<Attendance role="user" />} />
-                        <Route path='/user/:userId/settings' element={<Settings role="user" />} />
-                        <Route path='/user/:userId/payments' element={<Payments role="user" />} />
-                        <Route path='/user/:userId/profile' element={<UserProfile />} />
+          <PlanRequestProvider>
+            <ConsultationProvider>
+              <TrainerProvider>
+                <AttendanceProvider>
+                  <WorkoutPlanProvider>
+                    <DietPlanProvider>
+                      <ProgressProvider>
+                        <Routes>
+                          <Route path='/' element={<Home />} />
+                          <Route path='/login' element={<><Home /><Login /></>} />
+                          <Route path='/join' element={<><Home /><Reg /></>} />
+                          
+                          <Route path='/admin' element={<AdminDashboard />} />
+                          <Route path='/admin/members' element={<Members role="admin" />} />
+                          <Route path='/admin/trainers' element={<Trainers />} />
+                          <Route path='/admin/membership' element={<MembershipPlans />} />
+                          <Route path='/admin/reports' element={<Reports />} />
+                          <Route path='/admin/payments' element={<Payments role="admin" />} />
+                          <Route path='/admin/settings' element={<Settings role="admin" />} />
+                          <Route path='/admin/attendance' element={<Attendance role="admin" />} />
+                          
+                          <Route path='/user/:userId' element={<UserDashboard />} />
+                          <Route path='/user/:userId/plan' element={<UserPlan />} />
+                          <Route path='/user/:userId/workout' element={<UserWorkout />} />
+                          <Route path='/user/:userId/diet' element={<UserDiet />} />
+                          <Route path='/user/:userId/progress' element={<Progress role="user" />} />
+                          <Route path='/user/:userId/attendance' element={<Attendance role="user" />} />
+                          <Route path='/user/:userId/settings' element={<Settings role="user" />} />
+                          <Route path='/user/:userId/payments' element={<Payments role="user" />} />
+                          <Route path='/user/:userId/profile' element={<UserProfile />} />
 
-                        <Route path='/trainer/:trainerId' element={<TrainerDashboard />} />
-                        <Route path='/trainer/:trainerId/members' element={<Members role="trainer" />} />
-                        <Route path='/trainer/:trainerId/workouts' element={<Workouts />} />
-                        <Route path='/trainer/:trainerId/diets' element={<DietPlans />} />
-                        <Route path='/trainer/:trainerId/progress' element={<Progress role="trainer" />} />
-                        <Route path='/trainer/:trainerId/messages' element={<Messages role="trainer" />} />
-                        <Route path='/trainer/:trainerId/settings' element={<Settings role="trainer" />} />
-                        <Route path='/trainer/:trainerId/attendance' element={<Attendance role="trainer" />} />
-                      </Routes>
-                    </ProgressProvider>
-                  </DietPlanProvider>
-                </WorkoutPlanProvider>
-              </AttendanceProvider>
-            </TrainerProvider>
-          </ConsultationProvider>
+                          <Route path='/trainer/:trainerId' element={<TrainerDashboard />} />
+                          <Route path='/trainer/:trainerId/members' element={<Members role="trainer" />} />
+                          <Route path='/trainer/:trainerId/workouts' element={<Workouts />} />
+                          <Route path='/trainer/:trainerId/diets' element={<DietPlans />} />
+                          <Route path='/trainer/:trainerId/progress' element={<Progress role="trainer" />} />
+                          <Route path='/trainer/:trainerId/messages' element={<Messages role="trainer" />} />
+                          <Route path='/trainer/:trainerId/settings' element={<Settings role="trainer" />} />
+                          <Route path='/trainer/:trainerId/attendance' element={<Attendance role="trainer" />} />
+                        </Routes>
+                      </ProgressProvider>
+                    </DietPlanProvider>
+                  </WorkoutPlanProvider>
+                </AttendanceProvider>
+              </TrainerProvider>
+            </ConsultationProvider>
+          </PlanRequestProvider>
         </MemberProvider>
       </MembershipProvider>
       {/* <Footer /> */}

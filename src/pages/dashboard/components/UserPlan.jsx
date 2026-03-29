@@ -3,23 +3,44 @@ import { useParams } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useMembershipPlans } from "../../../context/MembershipContext";
 import { useMembers } from "../../../context/MemberContext";
+import {
+  getDecisionLabel,
+  getDecisionPillClass,
+  usePlanRequests,
+} from "../../../context/PlanRequestContext";
 import "../components/styl/UserPlan.css";
 import "../components/styl/DashboardOverview.css";
 
 const UserPlan = ({ userId: userIdProp = null }) => {
   const { userId: userIdParam } = useParams();
   const { plans } = useMembershipPlans();
-  const { members, updateMemberPlan } = useMembers();
+  const { members } = useMembers();
+  const { planRequests, submitPlanChangeRequest } = usePlanRequests();
   const userId = Number(userIdParam ?? userIdProp);
   const member = members.find((item) => item.id === userId);
+
+  const latestRequest = planRequests.find((request) => request.memberId === member?.id) ?? null;
+  const pendingRequest =
+    planRequests.find(
+      (request) => request.memberId === member?.id && request.status === "pending"
+    ) ?? null;
 
   const handlePlanUpdate = (planName) => {
     if (!member || member.plan === planName) {
       return;
     }
 
-    updateMemberPlan(member.id, planName);
-    toast.success(`Membership updated to ${planName}.`);
+    const result = submitPlanChangeRequest({
+      member,
+      requestedPlan: planName,
+    });
+
+    if (!result?.ok) {
+      toast.error(result?.error || "Unable to send plan change request.");
+      return;
+    }
+
+    toast.success(`Plan change request for ${planName} was sent to admin and trainer.`);
   };
 
   const currentPlan = plans.find((plan) => plan.name === member?.plan);
@@ -32,7 +53,8 @@ const UserPlan = ({ userId: userIdProp = null }) => {
             <p className="eyebrow">User - My Plan</p>
             <h1>Current Membership Plan</h1>
             <p className="subtext">
-              Review your current plan and switch to another membership when you want to update it.
+              Review your current plan and send a change request when you want to move to another
+              membership.
             </p>
           </div>
         </div>
@@ -52,6 +74,48 @@ const UserPlan = ({ userId: userIdProp = null }) => {
           </div>
         </div>
 
+        {latestRequest && (
+          <section className="dashboard-panel user-plan-request">
+            <div className="user-plan-request__head">
+              <div>
+                <p className="eyebrow">Latest Request</p>
+                <h2>
+                  {latestRequest.currentPlan} to {latestRequest.requestedPlan}
+                </h2>
+                <p className="subtext">
+                  Sent to admin and {latestRequest.trainerName || "assigned trainer"} for
+                  approval.
+                </p>
+              </div>
+              <span className={`pill ${getDecisionPillClass(latestRequest.status)}`}>
+                {getDecisionLabel(latestRequest.status)}
+              </span>
+            </div>
+
+            <div className="user-plan-request__status">
+              <div className="user-plan-request__status-item">
+                <span>Admin</span>
+                <strong>{getDecisionLabel(latestRequest.adminDecision)}</strong>
+              </div>
+              <div className="user-plan-request__status-item">
+                <span>Trainer</span>
+                <strong>{getDecisionLabel(latestRequest.trainerDecision)}</strong>
+              </div>
+              <div className="user-plan-request__status-item">
+                <span>Requested On</span>
+                <strong>{latestRequest.createdAt.slice(0, 10)}</strong>
+              </div>
+            </div>
+
+            {pendingRequest && (
+              <p className="user-plan-request__note">
+                This request is still pending. Your membership changes only after both admin and
+                trainer approve it.
+              </p>
+            )}
+          </section>
+        )}
+
         {currentPlan && (
           <section className="dashboard-panel user-plan-current">
             <p className="eyebrow">My Current Plan</p>
@@ -68,6 +132,15 @@ const UserPlan = ({ userId: userIdProp = null }) => {
         <section className="user-plan-grid">
           {plans.map((plan) => {
             const isCurrent = member?.plan === plan.name;
+            const isPendingForThisPlan = pendingRequest?.requestedPlan === plan.name;
+            const requestBlocked = Boolean(pendingRequest);
+            const actionLabel = isCurrent
+              ? "Current Plan"
+              : isPendingForThisPlan
+              ? "Request Pending"
+              : requestBlocked
+              ? "Request In Review"
+              : "Request Plan Change";
 
             return (
               <article
@@ -96,10 +169,10 @@ const UserPlan = ({ userId: userIdProp = null }) => {
                 <button
                   type="button"
                   className="user-plan-action"
-                  disabled={isCurrent}
+                  disabled={isCurrent || requestBlocked}
                   onClick={() => handlePlanUpdate(plan.name)}
                 >
-                  {isCurrent ? "Current Plan" : "Update Plan"}
+                  {actionLabel}
                 </button>
               </article>
             );

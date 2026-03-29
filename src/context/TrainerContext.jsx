@@ -7,6 +7,7 @@ import {
 } from "react";
 import { trainers as initialTrainerRoster } from "../data/dashboard";
 import { useMembers } from "./MemberContext";
+import { hasTrainerAccess } from "../utils/memberAccess";
 
 const STORAGE_KEY = "urbangrind-trainer-roster";
 const TrainerContext = createContext(null);
@@ -90,7 +91,7 @@ export const TrainerProvider = ({ children }) => {
 
   const trainers = useMemo(() => {
     const memberCountByTrainer = members.reduce((accumulator, member) => {
-      if (member.trainerId == null) {
+      if (member.trainerId == null || !hasTrainerAccess(member.plan)) {
         return accumulator;
       }
 

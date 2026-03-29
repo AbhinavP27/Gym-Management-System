@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useMembers } from "../../../context/MemberContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/Members.css";
 
 const normalizeSearch = (value = "") =>
@@ -17,7 +18,9 @@ const Members = ({ role = "admin", userId = null }) => {
 
   const membersData = useMemo(() => {
     if (role === "trainer") {
-      return memberRoster.filter((member) => member.trainerId === trainerId);
+      return memberRoster.filter(
+        (member) => member.trainerId === trainerId && hasTrainerAccess(member.plan)
+      );
     }
 
     return memberRoster;
@@ -59,13 +62,13 @@ const Members = ({ role = "admin", userId = null }) => {
   const title = isTrainerView ? "My Members" : "Members";
   const eyebrow = isTrainerView ? "Trainer - My Members" : "Admin - Members";
   const subtext = isTrainerView
-    ? `${membersData.length} assigned clients are listed here for the trainer workflow.`
+    ? `${membersData.length} eligible clients are listed here for the trainer workflow.`
     : "Centralized member list for seamless admin and trainer attendance management.";
   const hasActiveFilters = Boolean(query || planFilter || trainerFilter);
   const emptyMessage = hasActiveFilters
     ? "No members match the current filters."
     : isTrainerView
-    ? "No members are assigned to this trainer yet."
+    ? "No Gold or Diamond members are assigned to this trainer yet."
     : "No members available.";
 
   return (

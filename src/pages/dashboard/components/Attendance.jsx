@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { PieChart, Pie, Tooltip, Cell } from "recharts";
 import { useAttendance } from "../../../context/AttendanceContext";
+import { useMembers } from "../../../context/MemberContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/Attendance.css";
 import DashboardLayout from "../layouts/DashboardLayout";
 
@@ -18,10 +20,22 @@ const normalizeSearch = (value = "") =>
 const Attendance = ({ role, userId }) => {
   const { trainerId: trainerIdParam, userId: userIdParam } = useParams();
   const { attendance, toggleAttendanceStatus } = useAttendance();
+  const { members } = useMembers();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const trainerId = Number(trainerIdParam ?? userId);
   const resolvedUserId = Number(userIdParam ?? userId);
+  const eligibleTrainerMemberIds = useMemo(
+    () =>
+      new Set(
+        members
+          .filter(
+            (member) => member.trainerId === trainerId && hasTrainerAccess(member.plan)
+          )
+          .map((member) => member.id)
+      ),
+    [members, trainerId]
+  );
 
   const filtered = useMemo(() => {
     let data = attendance;
@@ -32,7 +46,10 @@ const Attendance = ({ role, userId }) => {
 
     if (role === "trainer") {
       data = data.filter(
-        (entry) => entry.role === "member" && entry.trainerId === trainerId
+        (entry) =>
+          entry.role === "member" &&
+          entry.trainerId === trainerId &&
+          eligibleTrainerMemberIds.has(entry.userId)
       );
     }
 
@@ -70,7 +87,7 @@ const Attendance = ({ role, userId }) => {
     }
 
     return data;
-  }, [attendance, filter, query, resolvedUserId, role, trainerId]);
+  }, [attendance, eligibleTrainerMemberIds, filter, query, resolvedUserId, role, trainerId]);
 
   const stats = useMemo(() => {
     const present = filtered.filter((entry) => entry.status === "Present").length;

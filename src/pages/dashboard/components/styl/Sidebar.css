@@ -93,6 +93,33 @@
   flex-shrink: 0;
 }
 
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.sidebar-link--disabled {
+  cursor: not-allowed;
+  color: #64748b;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.sidebar-link--disabled span {
+  flex: 1;
+}
+
+.sidebar-link--disabled small {
+  color: #f59e0b;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 /* Active link */
 .sidebar-menu li a.active {
   background: #3b82f6;

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useMembers } from "../../../context/MemberContext";
 import { useDietPlans } from "../../../context/DietPlanContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/WorkoutPlans.css";
 
 const formatDate = (value) => {
@@ -25,6 +26,7 @@ const UserDiet = ({ userId: userIdProp = null }) => {
   const { mealGroups, plansByMember } = useDietPlans();
   const userId = Number(userIdParam ?? userIdProp);
   const member = memberRoster.find((item) => item.id === userId);
+  const hasPremiumAccess = hasTrainerAccess(member?.plan);
   const memberPlan =
     plansByMember[String(userId)] ?? {
       groups: {},
@@ -40,6 +42,29 @@ const UserDiet = ({ userId: userIdProp = null }) => {
     (count, group) => count + group.meals.length,
     0
   );
+
+  if (!hasPremiumAccess) {
+    return (
+      <DashboardLayout role="user">
+        <div className="workout-page">
+          <div className="workout-hero">
+            <div>
+              <p className="eyebrow">User - My Diet</p>
+              <h1>Diet Plan Locked</h1>
+              <p className="subtext">
+                Upgrade to Gold or Diamond to unlock trainer-assigned diet plans.
+              </p>
+            </div>
+          </div>
+
+          <div className="workout-empty">
+            Your current plan is {member?.plan ?? "Basic"}. Diet plans are available only for
+            Gold and Diamond members.
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout role="user">

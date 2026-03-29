@@ -179,6 +179,11 @@
   color: #fcd34d;
 }
 
+.pill--red {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+}
+
 .pill--muted {
   background: rgba(255, 255, 255, 0.06);
   color: #cbd5e1;

@@ -286,6 +286,44 @@
   transform: scale(1.04);
 }
 
+.approval-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.approval-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.approval-action {
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.approval-action--approve {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.approval-action--reject {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+
+.approval-action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
 .admin-feedback-summary__row {
   display: flex;
   justify-content: space-between;

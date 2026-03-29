@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useMembers } from "../../../context/MemberContext";
 import { useWorkoutPlans } from "../../../context/WorkoutPlanContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/WorkoutPlans.css";
 
 const normalizeSearch = (value = "") =>
@@ -34,7 +35,10 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
   const trainerId = Number(trainerIdParam ?? trainerIdProp);
 
   const trainerMembers = useMemo(
-    () => memberRoster.filter((member) => member.trainerId === trainerId),
+    () =>
+      memberRoster.filter(
+        (member) => member.trainerId === trainerId && hasTrainerAccess(member.plan)
+      ),
     [memberRoster, trainerId]
   );
 
@@ -174,12 +178,13 @@ const Workouts = ({ trainerId: trainerIdProp = null }) => {
               <p className="eyebrow">Trainer - Workout Plans</p>
               <h1>Workout Plans</h1>
               <p className="subtext">
-                Assignments appear here once members are connected to this trainer.
+                Assignments appear here once Gold or Diamond members are connected to this trainer.
               </p>
             </div>
           </div>
           <div className="workout-empty">
-            No members are assigned to this trainer yet, so there is nobody to push workouts to.
+            No eligible members are assigned to this trainer yet, so there is nobody to push
+            workouts to.
           </div>
         </div>
       </DashboardLayout>

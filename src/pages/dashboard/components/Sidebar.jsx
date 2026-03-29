@@ -2,9 +2,14 @@ import { Link, useParams } from "react-router-dom";
 import React from "react";
 import "./styl/Sidebar.css";
 import { sidebarConfig } from "../../../data/sidebarConfig";
+import { useMembers } from "../../../context/MemberContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 
 const Sidebar = ({ role , isMobile, isOpen, setIsOpen }) => {
   const { trainerId, userId } = useParams();
+  const { getMemberById } = useMembers();
+  const member = role === "user" ? getMemberById(userId) : null;
+  const hasPremiumAccess = hasTrainerAccess(member?.plan);
 
   const handleClose = () => {
     if (isMobile) setIsOpen(false);
@@ -30,12 +35,25 @@ const Sidebar = ({ role , isMobile, isOpen, setIsOpen }) => {
       <ul className="sidebar-menu">
         {menuItems.map((item, index) => {
           const Icon = item.icon;
+          const isRestrictedUserItem =
+            role === "user" &&
+            !hasPremiumAccess &&
+            (item.path === "/user/workout" || item.path === "/user/diet");
+
           return (
             <li key={index}>
-              <Link to={resolvePath(item.path)} onClick={handleClose}>
-                {Icon && <Icon size={18} strokeWidth={1.75} />}
-                {item.name}
-              </Link>
+              {isRestrictedUserItem ? (
+                <span className="sidebar-link sidebar-link--disabled">
+                  {Icon && <Icon size={18} strokeWidth={1.75} />}
+                  <span>{item.name}</span>
+                  <small>Gold or Diamond</small>
+                </span>
+              ) : (
+                <Link to={resolvePath(item.path)} onClick={handleClose}>
+                  {Icon && <Icon size={18} strokeWidth={1.75} />}
+                  {item.name}
+                </Link>
+              )}
             </li>
           );
         })}

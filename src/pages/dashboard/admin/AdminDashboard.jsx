@@ -20,6 +20,11 @@ import "../components/styl/Profile.css";
 import { useConsultations } from "../../../context/ConsultationContext";
 import { useMembers } from "../../../context/MemberContext";
 import { useMembershipPlans } from "../../../context/MembershipContext";
+import {
+  getDecisionLabel,
+  getDecisionPillClass,
+  usePlanRequests,
+} from "../../../context/PlanRequestContext";
 import { useTrainerDirectory } from "../../../context/TrainerContext";
 
 const formatDateTime = (value) =>
@@ -49,6 +54,7 @@ const AdminDashboard = () => {
   const { plans } = useMembershipPlans();
   const { trainers } = useTrainerDirectory();
   const { consultationRequests, removeConsultationRequest } = useConsultations();
+  const { planRequests, reviewPlanChangeRequest } = usePlanRequests();
 
   const feedbackEntries = useMemo(
     () =>
@@ -90,6 +96,10 @@ const AdminDashboard = () => {
     () => planMetrics.reduce((total, item) => total + item.revenue, 0),
     [planMetrics]
   );
+  const pendingPlanRequests = useMemo(
+    () => planRequests.filter((request) => request.status === "pending"),
+    [planRequests]
+  );
 
   const revenueChartData = useMemo(
     () =>
@@ -121,6 +131,30 @@ const AdminDashboard = () => {
       createdAt: entry.createdAt,
     });
     toast.success("Feedback removed.");
+  };
+
+  const handlePlanRequestReview = (requestId, decision) => {
+    const result = reviewPlanChangeRequest({
+      requestId,
+      actorRole: "admin",
+      decision,
+    });
+
+    if (!result?.ok) {
+      toast.error(result?.error || "Unable to review plan change request.");
+      return;
+    }
+
+    if (decision === "approved") {
+      toast.success(
+        result.applied
+          ? "Admin approved the request and the plan was updated."
+          : "Admin approved the request. Waiting for trainer approval."
+      );
+      return;
+    }
+
+    toast.success("Plan change request rejected by admin.");
   };
 
   return (
@@ -162,6 +196,82 @@ const AdminDashboard = () => {
             <span>Free Consult Requests</span>
             <strong>{consultationRequests.length}</strong>
           </div>
+          <div className="overview-stat">
+            <span>Plan Change Requests</span>
+            <strong>{pendingPlanRequests.length}</strong>
+          </div>
+        </div>
+
+        <div className="admin-feedback-grid">
+          <section className="admin-feedback-card admin-feedback-card--wide">
+            <div className="admin-feedback-card__header">
+              <div>
+                <p className="eyebrow">Approval Inbox</p>
+                <h2>Membership Change Requests</h2>
+              </div>
+            </div>
+
+            <div className="admin-feedback-list">
+              {planRequests.map((request) => (
+                <article key={request.id} className="admin-feedback-item">
+                  <div className="admin-feedback-item__meta">
+                    <div>
+                      <strong>{request.memberName}</strong>
+                      <small>
+                        {" "}
+                        {request.currentPlan} to {request.requestedPlan} | Trainer:{" "}
+                        {request.trainerName || "Not assigned"}
+                      </small>
+                    </div>
+                    <div className="admin-feedback-item__actions">
+                      <span className={`pill ${getDecisionPillClass(request.status)}`}>
+                        {getDecisionLabel(request.status)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="approval-meta">
+                    <span>Admin: {getDecisionLabel(request.adminDecision)}</span>
+                    <span>Trainer: {getDecisionLabel(request.trainerDecision)}</span>
+                    <span>{formatDateTime(request.createdAt)}</span>
+                  </div>
+
+                  {request.status === "pending" && request.adminDecision === "pending" ? (
+                    <div className="approval-action-row">
+                      <button
+                        type="button"
+                        className="approval-action approval-action--approve"
+                        onClick={() => handlePlanRequestReview(request.id, "approved")}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        className="approval-action approval-action--reject"
+                        onClick={() => handlePlanRequestReview(request.id, "rejected")}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  ) : (
+                    <small>
+                      {request.status === "approved"
+                        ? "This request has been fully approved and applied."
+                        : request.status === "rejected"
+                        ? "This request was rejected."
+                        : "Admin has already reviewed this request. Waiting for trainer action."}
+                    </small>
+                  )}
+                </article>
+              ))}
+
+              {planRequests.length === 0 && (
+                <div className="admin-feedback-empty">
+                  No membership change requests have been submitted yet.
+                </div>
+              )}
+            </div>
+          </section>
         </div>
 
         <div className="admin-feedback-grid">

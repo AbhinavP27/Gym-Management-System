@@ -20,6 +20,7 @@ import {
   GOAL_OPTIONS,
   useProgressTracking,
 } from "../../../context/ProgressContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/ProgressTracking.css";
 
 const createEmptyForm = (goal = GOAL_OPTIONS[0]) => ({
@@ -52,7 +53,10 @@ const Progress = ({ role, userId }) => {
   const resolvedUserId = Number(userIdParam ?? userId);
 
   const trainerMembers = useMemo(
-    () => members.filter((member) => member.trainerId === trainerId),
+    () =>
+      members.filter(
+        (member) => member.trainerId === trainerId && hasTrainerAccess(member.plan)
+      ),
     [members, trainerId]
   );
   const selectedMember =

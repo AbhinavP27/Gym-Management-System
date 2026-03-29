@@ -5,6 +5,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import ConfirmPopup from "./ConfirmPopup";
 import { useMembers } from "../../../context/MemberContext";
 import { useDietPlans } from "../../../context/DietPlanContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/WorkoutPlans.css";
 
 const normalizeSearch = (value = "") =>
@@ -36,7 +37,10 @@ const DietPlans = ({ trainerId: trainerIdProp = null }) => {
   const trainerId = Number(trainerIdParam ?? trainerIdProp);
 
   const trainerMembers = useMemo(
-    () => memberRoster.filter((member) => member.trainerId === trainerId),
+    () =>
+      memberRoster.filter(
+        (member) => member.trainerId === trainerId && hasTrainerAccess(member.plan)
+      ),
     [memberRoster, trainerId]
   );
 
@@ -181,12 +185,14 @@ const DietPlans = ({ trainerId: trainerIdProp = null }) => {
               <p className="eyebrow">Trainer - Diet Plans</p>
               <h1>Diet Plans</h1>
               <p className="subtext">
-                Diet assignments appear here once members are connected to this trainer.
+                Diet assignments appear here once Gold or Diamond members are connected to this
+                trainer.
               </p>
             </div>
           </div>
           <div className="workout-empty">
-            No members are assigned to this trainer yet, so there is nobody to push diet plans to.
+            No eligible members are assigned to this trainer yet, so there is nobody to push diet
+            plans to.
           </div>
         </div>
       </DashboardLayout>

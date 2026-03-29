@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import toast from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -5,14 +7,53 @@ import {
   TRAINER_STATUSES,
   useTrainerDirectory,
 } from "../../../context/TrainerContext";
+import {
+  getDecisionLabel,
+  getDecisionPillClass,
+  usePlanRequests,
+} from "../../../context/PlanRequestContext";
 import "../components/styl/DashboardOverview.css";
 import "../components/styl/WorkoutPlans.css";
+import "../components/styl/Profile.css";
 
 const TrainerDashboard = ({ userId = null }) => {
   const { trainerId: trainerIdParam } = useParams();
   const { trainers, updateTrainerStatus } = useTrainerDirectory();
+  const { planRequests, reviewPlanChangeRequest } = usePlanRequests();
   const trainerId = Number(trainerIdParam ?? userId);
   const trainer = trainers.find((item) => item.id === trainerId);
+  const trainerPlanRequests = useMemo(
+    () => planRequests.filter((request) => request.trainerId === trainerId),
+    [planRequests, trainerId]
+  );
+  const pendingPlanRequests = trainerPlanRequests.filter(
+    (request) => request.status === "pending"
+  );
+
+  const handlePlanRequestReview = (requestId, decision) => {
+    const result = reviewPlanChangeRequest({
+      requestId,
+      actorRole: "trainer",
+      decision,
+      trainerId,
+    });
+
+    if (!result?.ok) {
+      toast.error(result?.error || "Unable to review plan change request.");
+      return;
+    }
+
+    if (decision === "approved") {
+      toast.success(
+        result.applied
+          ? "Trainer approved the request and the member plan was updated."
+          : "Trainer approved the request. Waiting for admin approval."
+      );
+      return;
+    }
+
+    toast.success("Plan change request rejected by trainer.");
+  };
 
   if (!trainer) {
     return (
@@ -54,8 +95,12 @@ const TrainerDashboard = ({ userId = null }) => {
             <strong>{trainer.specialization}</strong>
           </div>
           <div className="overview-stat">
-            <span>Assigned Members</span>
+            <span>Eligible Members</span>
             <strong>{trainer.members}</strong>
+          </div>
+          <div className="overview-stat">
+            <span>Pending Requests</span>
+            <strong>{pendingPlanRequests.length}</strong>
           </div>
         </div>
 
@@ -79,6 +124,75 @@ const TrainerDashboard = ({ userId = null }) => {
                 </option>
               ))}
             </select>
+          </div>
+        </div>
+
+        <div className="dashboard-panel">
+          <p className="eyebrow">Plan Requests</p>
+          <h2>Membership Approval Queue</h2>
+          <p className="subtext">
+            Review plan change requests from your assigned members. The plan updates only after
+            both trainer and admin approve it.
+          </p>
+
+          <div className="admin-feedback-list">
+            {trainerPlanRequests.map((request) => (
+              <article key={request.id} className="admin-feedback-item">
+                <div className="admin-feedback-item__meta">
+                  <div>
+                    <strong>{request.memberName}</strong>
+                    <small>
+                      {" "}
+                      {request.currentPlan} to {request.requestedPlan}
+                    </small>
+                  </div>
+                  <div className="admin-feedback-item__actions">
+                    <span className={`pill ${getDecisionPillClass(request.status)}`}>
+                      {getDecisionLabel(request.status)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="approval-meta">
+                  <span>Admin: {getDecisionLabel(request.adminDecision)}</span>
+                  <span>Trainer: {getDecisionLabel(request.trainerDecision)}</span>
+                  <span>{new Date(request.createdAt).toISOString().slice(0, 10)}</span>
+                </div>
+
+                {request.status === "pending" && request.trainerDecision === "pending" ? (
+                  <div className="approval-action-row">
+                    <button
+                      type="button"
+                      className="approval-action approval-action--approve"
+                      onClick={() => handlePlanRequestReview(request.id, "approved")}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      type="button"
+                      className="approval-action approval-action--reject"
+                      onClick={() => handlePlanRequestReview(request.id, "rejected")}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                ) : (
+                  <small>
+                    {request.status === "approved"
+                      ? "This request has been fully approved and the plan is now active."
+                      : request.status === "rejected"
+                      ? "This request was rejected."
+                      : "Trainer has already reviewed this request. Waiting for admin action."}
+                  </small>
+                )}
+              </article>
+            ))}
+
+            {trainerPlanRequests.length === 0 && (
+              <div className="admin-feedback-empty">
+                No plan change requests have been sent to this trainer yet.
+              </div>
+            )}
           </div>
         </div>
 

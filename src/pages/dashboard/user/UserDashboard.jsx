@@ -5,6 +5,7 @@ import { useAttendance } from "../../../context/AttendanceContext";
 import { useMembers } from "../../../context/MemberContext";
 import { useWorkoutPlans } from "../../../context/WorkoutPlanContext";
 import { useDietPlans } from "../../../context/DietPlanContext";
+import { hasTrainerAccess } from "../../../utils/memberAccess";
 import "../components/styl/DashboardOverview.css";
 import "../components/styl/WorkoutPlans.css";
 
@@ -30,6 +31,7 @@ const UserDashboard = ({ userId: userIdProp = null }) => {
   const { mealGroups, plansByMember: dietPlansByMember } = useDietPlans();
   const userId = Number(userIdParam ?? userIdProp);
   const member = memberRoster.find((item) => item.id === userId);
+  const hasPremiumAccess = hasTrainerAccess(member?.plan);
   const memberPlan =
     plansByMember[String(userId)] ?? {
       groups: {},
@@ -60,6 +62,10 @@ const UserDashboard = ({ userId: userIdProp = null }) => {
   const todayAttendance = attendance.find(
     (entry) => entry.role === "member" && entry.userId === userId
   );
+  const visibleWorkoutGroups = hasPremiumAccess ? workoutGroups : [];
+  const visibleDietGroups = hasPremiumAccess ? dietGroups : [];
+  const visibleWorkoutCount = hasPremiumAccess ? totalWorkouts : 0;
+  const visibleDietCount = hasPremiumAccess ? totalDietItems : 0;
 
   return (
     <DashboardLayout role="user">
@@ -82,15 +88,15 @@ const UserDashboard = ({ userId: userIdProp = null }) => {
           </div>
           <div className="overview-stat">
             <span>Muscle Groups</span>
-            <strong>{workoutGroups.length}</strong>
+            <strong>{visibleWorkoutGroups.length}</strong>
           </div>
           <div className="overview-stat">
             <span>My Workouts</span>
-            <strong>{totalWorkouts}</strong>
+            <strong>{visibleWorkoutCount}</strong>
           </div>
           <div className="overview-stat">
             <span>Diet Items</span>
-            <strong>{totalDietItems}</strong>
+            <strong>{visibleDietCount}</strong>
           </div>
           <div className="overview-stat">
             <span>Today Attendance</span>
@@ -103,24 +109,33 @@ const UserDashboard = ({ userId: userIdProp = null }) => {
           <h2>Trainer Assigned Workout Plan</h2>
           <p className="subtext">Last updated: {formatDate(memberPlan.updatedAt)}</p>
 
-          {workoutGroups.length > 0 ? (
+          {hasPremiumAccess ? (
             <>
-              <div className="dashboard-workout-preview">
-                {workoutGroups.map((group) => (
-                  <div key={group.muscleId} className="dashboard-workout-preview__item">
-                    <strong>{group.muscleName}</strong>
-                    <span>{group.workouts.length} workouts assigned</span>
+              {visibleWorkoutGroups.length > 0 ? (
+                <>
+                  <div className="dashboard-workout-preview">
+                    {visibleWorkoutGroups.map((group) => (
+                      <div key={group.muscleId} className="dashboard-workout-preview__item">
+                        <strong>{group.muscleName}</strong>
+                        <span>{group.workouts.length} workouts assigned</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <Link to={`/user/${userId}/workout`} className="workout-link">
-                Open My Workout
-              </Link>
+                  <Link to={`/user/${userId}/workout`} className="workout-link">
+                    Open My Workout
+                  </Link>
+                </>
+              ) : (
+                <div className="workout-empty">
+                  No workout plan has been pushed yet. Your trainer can assign workouts from the
+                  trainer dashboard.
+                </div>
+              )}
             </>
           ) : (
             <div className="workout-empty">
-              No workout plan has been pushed yet. Your trainer can assign workouts from the
-              trainer dashboard.
+              Workout schedules are locked on the Basic plan. Upgrade to Gold or Diamond to
+              unlock this feature.
             </div>
           )}
         </div>
@@ -130,24 +145,33 @@ const UserDashboard = ({ userId: userIdProp = null }) => {
           <h2>Trainer Assigned Diet Plan</h2>
           <p className="subtext">Last updated: {formatDate(dietPlan.updatedAt)}</p>
 
-          {dietGroups.length > 0 ? (
+          {hasPremiumAccess ? (
             <>
-              <div className="dashboard-workout-preview">
-                {dietGroups.map((group) => (
-                  <div key={group.mealId} className="dashboard-workout-preview__item">
-                    <strong>{group.mealName}</strong>
-                    <span>{group.meals.length} diet items assigned</span>
+              {visibleDietGroups.length > 0 ? (
+                <>
+                  <div className="dashboard-workout-preview">
+                    {visibleDietGroups.map((group) => (
+                      <div key={group.mealId} className="dashboard-workout-preview__item">
+                        <strong>{group.mealName}</strong>
+                        <span>{group.meals.length} diet items assigned</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <Link to={`/user/${userId}/diet`} className="workout-link">
-                Open My Diet
-              </Link>
+                  <Link to={`/user/${userId}/diet`} className="workout-link">
+                    Open My Diet
+                  </Link>
+                </>
+              ) : (
+                <div className="workout-empty">
+                  No diet plan has been pushed yet. Your trainer can assign meal plans from the
+                  trainer dashboard.
+                </div>
+              )}
             </>
           ) : (
             <div className="workout-empty">
-              No diet plan has been pushed yet. Your trainer can assign meal plans from the
-              trainer dashboard.
+              Diet plans are locked on the Basic plan. Upgrade to Gold or Diamond to unlock this
+              feature.
             </div>
           )}
         </div>
