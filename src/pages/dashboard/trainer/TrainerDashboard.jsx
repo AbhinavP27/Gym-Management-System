@@ -17,22 +17,30 @@ import "../components/styl/DashboardOverview.css";
 import "../components/styl/WorkoutPlans.css";
 import "../components/styl/Profile.css";
 
+const getRequestHeadline = (request) =>
+  request.requestType === "trainer"
+    ? `${request.currentTrainerName || "No trainer"} to ${request.requestedTrainerName}`
+    : `${request.currentPlan} to ${request.requestedPlan}`;
+
+const getRequestTypeLabel = (request) =>
+  request.requestType === "trainer" ? "Trainer Change" : "Plan Change";
+
 const TrainerDashboard = ({ userId = null }) => {
   const { trainerId: trainerIdParam } = useParams();
   const { trainers, updateTrainerStatus } = useTrainerDirectory();
-  const { planRequests, reviewPlanChangeRequest, removePlanChangeRequest } = usePlanRequests();
+  const { approvalRequests, reviewApprovalRequest, removeApprovalRequest } = usePlanRequests();
   const trainerId = Number(trainerIdParam ?? userId);
   const trainer = trainers.find((item) => item.id === trainerId);
   const trainerPlanRequests = useMemo(
-    () => planRequests.filter((request) => request.trainerId === trainerId),
-    [planRequests, trainerId]
+    () => approvalRequests.filter((request) => request.trainerId === trainerId),
+    [approvalRequests, trainerId]
   );
   const pendingPlanRequests = trainerPlanRequests.filter(
     (request) => request.status === "pending"
   );
 
   const handlePlanRequestReview = (requestId, decision) => {
-    const result = reviewPlanChangeRequest({
+    const result = reviewApprovalRequest({
       requestId,
       actorRole: "trainer",
       decision,
@@ -47,17 +55,23 @@ const TrainerDashboard = ({ userId = null }) => {
     if (decision === "approved") {
       toast.success(
         result.applied
-          ? "Trainer approved the request and the member plan was updated."
+          ? result.request?.requestType === "trainer"
+            ? "Trainer approved the request and the member assignment was updated."
+            : "Trainer approved the request and the member plan was updated."
           : "Trainer approved the request. Waiting for admin approval."
       );
       return;
     }
 
-    toast.success("Plan change request rejected by trainer.");
+    toast.success(
+      result.request?.requestType === "trainer"
+        ? "Trainer change request rejected by trainer."
+        : "Plan change request rejected by trainer."
+    );
   };
 
   const handlePlanRequestRemove = (request) => {
-    const result = removePlanChangeRequest({
+    const result = removeApprovalRequest({
       requestId: request.id,
       actorRole: "trainer",
       trainerId,
@@ -68,7 +82,7 @@ const TrainerDashboard = ({ userId = null }) => {
       return;
     }
 
-    toast.success(`Plan change request from ${request.memberName} removed.`);
+    toast.success(`${getRequestTypeLabel(request)} from ${request.memberName} removed.`);
   };
 
   if (!trainer) {
@@ -144,11 +158,11 @@ const TrainerDashboard = ({ userId = null }) => {
         </div>
 
         <div className="dashboard-panel">
-          <p className="eyebrow">Plan Requests</p>
-          <h2>Membership Approval Queue</h2>
+          <p className="eyebrow">Approval Requests</p>
+          <h2>Member Approval Queue</h2>
           <p className="subtext">
-            Review plan change requests from your assigned members. The plan updates only after
-            both trainer and admin approve it.
+            Review requests routed to you. Trainer changes and plan changes apply only after both
+            trainer and admin approve them.
           </p>
 
           <div className="admin-feedback-list">
@@ -157,10 +171,7 @@ const TrainerDashboard = ({ userId = null }) => {
                 <div className="admin-feedback-item__meta">
                   <div>
                     <strong>{request.memberName}</strong>
-                    <small>
-                      {" "}
-                      {request.currentPlan} to {request.requestedPlan}
-                    </small>
+                    <small> {getRequestTypeLabel(request)} | {getRequestHeadline(request)}</small>
                   </div>
                   <div className="admin-feedback-item__actions">
                     <span className={`pill ${getDecisionPillClass(request.status)}`}>
@@ -169,7 +180,7 @@ const TrainerDashboard = ({ userId = null }) => {
                     <button
                       type="button"
                       className="admin-item-remove"
-                      aria-label={`Remove plan change request from ${request.memberName}`}
+                      aria-label={`Remove approval request from ${request.memberName}`}
                       onClick={() => handlePlanRequestRemove(request)}
                     >
                       <FaTrash aria-hidden="true" />
@@ -203,7 +214,9 @@ const TrainerDashboard = ({ userId = null }) => {
                 ) : (
                   <small>
                     {request.status === "approved"
-                      ? "This request has been fully approved and the plan is now active."
+                      ? request.requestType === "trainer"
+                        ? "This request has been fully approved and the trainer assignment is now active."
+                        : "This request has been fully approved and the plan is now active."
                       : request.status === "rejected"
                       ? "This request was rejected."
                       : "Trainer has already reviewed this request. Waiting for admin action."}
@@ -214,7 +227,7 @@ const TrainerDashboard = ({ userId = null }) => {
 
             {trainerPlanRequests.length === 0 && (
               <div className="admin-feedback-empty">
-                No plan change requests have been sent to this trainer yet.
+                No approval requests have been sent to this trainer yet.
               </div>
             )}
           </div>

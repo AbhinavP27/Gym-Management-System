@@ -15,14 +15,20 @@ const UserPlan = ({ userId: userIdProp = null }) => {
   const { userId: userIdParam } = useParams();
   const { plans } = useMembershipPlans();
   const { members } = useMembers();
-  const { planRequests, submitPlanChangeRequest } = usePlanRequests();
+  const { approvalRequests, submitPlanChangeRequest } = usePlanRequests();
   const userId = Number(userIdParam ?? userIdProp);
   const member = members.find((item) => item.id === userId);
 
-  const latestRequest = planRequests.find((request) => request.memberId === member?.id) ?? null;
+  const latestRequest =
+    approvalRequests.find(
+      (request) => request.memberId === member?.id && request.requestType === "plan"
+    ) ?? null;
   const pendingRequest =
-    planRequests.find(
-      (request) => request.memberId === member?.id && request.status === "pending"
+    approvalRequests.find(
+      (request) =>
+        request.memberId === member?.id &&
+        request.requestType === "plan" &&
+        request.status === "pending"
     ) ?? null;
 
   const handlePlanUpdate = (planName) => {

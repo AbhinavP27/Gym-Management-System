@@ -8,6 +8,11 @@ import {
   getTrainerStatusClass,
   useTrainerDirectory,
 } from "../../../context/TrainerContext";
+import {
+  getDecisionLabel,
+  getDecisionPillClass,
+  usePlanRequests,
+} from "../../../context/PlanRequestContext";
 import "../components/styl/DashboardOverview.css";
 import "../components/styl/Members.css";
 import "../components/styl/Profile.css";
@@ -48,11 +53,11 @@ const UserProfile = ({ userId: userIdProp = null }) => {
   const {
     getMemberById,
     updateMemberProfile,
-    switchMemberTrainer,
     addMemberFeedback,
     deleteMemberAccount,
   } = useMembers();
   const { trainers } = useTrainerDirectory();
+  const { approvalRequests, submitTrainerChangeRequest } = usePlanRequests();
   const userId = Number(userIdParam ?? userIdProp);
   const member = getMemberById(userId);
   const [isEditing, setIsEditing] = useState(false);
@@ -62,12 +67,37 @@ const UserProfile = ({ userId: userIdProp = null }) => {
     member?.trainerId ? String(member.trainerId) : ""
   );
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const latestTrainerRequest = useMemo(
+    () =>
+      approvalRequests.find(
+        (request) => request.memberId === member?.id && request.requestType === "trainer"
+      ) ?? null,
+    [approvalRequests, member?.id]
+  );
+  const pendingTrainerRequest = useMemo(
+    () =>
+      approvalRequests.find(
+        (request) =>
+          request.memberId === member?.id &&
+          request.requestType === "trainer" &&
+          request.status === "pending"
+      ) ?? null,
+    [approvalRequests, member?.id]
+  );
 
   useEffect(() => {
     setProfileForm(createProfileForm(member));
     setSelectedTrainerId(member?.trainerId ? String(member.trainerId) : "");
     setIsEditing(false);
   }, [member]);
+
+  useEffect(() => {
+    if (!member || latestTrainerRequest?.status !== "rejected") {
+      return;
+    }
+
+    setSelectedTrainerId(member.trainerId ? String(member.trainerId) : "");
+  }, [latestTrainerRequest?.id, latestTrainerRequest?.status, member, member?.trainerId]);
 
   const selectedTrainer = useMemo(
     () => trainers.find((trainer) => String(trainer.id) === selectedTrainerId) ?? null,
@@ -144,8 +174,17 @@ const UserProfile = ({ userId: userIdProp = null }) => {
       return;
     }
 
-    switchMemberTrainer(member.id, selectedTrainer);
-    toast.success(`Trainer switched to ${selectedTrainer.name}.`);
+    const result = submitTrainerChangeRequest({
+      member,
+      requestedTrainer: selectedTrainer,
+    });
+
+    if (!result?.ok) {
+      toast.error(result?.error || "Unable to send trainer change request.");
+      return;
+    }
+
+    toast.success(`Trainer change request sent to ${selectedTrainer.name} and admin.`);
   };
 
   const handleFeedbackSubmit = (event) => {
@@ -361,8 +400,26 @@ const UserProfile = ({ userId: userIdProp = null }) => {
 
             <p className="subtext">
               Select another trainer and apply the change. This also updates trainer-side member
-              lists automatically.
+              lists after admin and the new trainer approve your request.
             </p>
+
+            {latestTrainerRequest && (
+              <div className="profile-inline-request">
+                <div>
+                  <strong>
+                    {latestTrainerRequest.currentTrainerName || "No trainer"} to{" "}
+                    {latestTrainerRequest.requestedTrainerName}
+                  </strong>
+                  <small>
+                    Admin: {getDecisionLabel(latestTrainerRequest.adminDecision)} | Trainer:{" "}
+                    {getDecisionLabel(latestTrainerRequest.trainerDecision)}
+                  </small>
+                </div>
+                <span className={`pill ${getDecisionPillClass(latestTrainerRequest.status)}`}>
+                  {getDecisionLabel(latestTrainerRequest.status)}
+                </span>
+              </div>
+            )}
 
             <div className="profile-trainer-list">
               {trainers.map((trainer) => (
@@ -389,8 +446,9 @@ const UserProfile = ({ userId: userIdProp = null }) => {
               type="button"
               className="profile-primary-action"
               onClick={handleTrainerSwitch}
+              disabled={Boolean(pendingTrainerRequest)}
             >
-              Switch Trainer
+              {pendingTrainerRequest ? "Request Pending" : "Request Trainer Change"}
             </button>
           </section>
 

@@ -4,6 +4,14 @@ import { useMembers } from "./MemberContext";
 const STORAGE_KEY = "urbangrind-plan-change-requests";
 const PlanRequestContext = createContext(null);
 
+const normalizeRequestType = (value) => {
+  if (value === "trainer") {
+    return "trainer";
+  }
+
+  return "plan";
+};
+
 const normalizeDecision = (value) => {
   if (value === "approved") {
     return "approved";
@@ -30,12 +38,19 @@ const normalizeStatus = (value) => {
 
 const normalizePlanRequest = (request) => ({
   id: request.id ?? `plan-request-${Date.now()}`,
+  requestType: normalizeRequestType(request.requestType),
   memberId: Number(request.memberId),
   memberName: request.memberName?.trim() ?? "",
   trainerId: request.trainerId == null ? null : Number(request.trainerId),
   trainerName: request.trainerName?.trim() ?? "",
   currentPlan: request.currentPlan?.trim() ?? "",
   requestedPlan: request.requestedPlan?.trim() ?? "",
+  currentTrainerId:
+    request.currentTrainerId == null ? null : Number(request.currentTrainerId),
+  currentTrainerName: request.currentTrainerName?.trim() ?? "",
+  requestedTrainerId:
+    request.requestedTrainerId == null ? null : Number(request.requestedTrainerId),
+  requestedTrainerName: request.requestedTrainerName?.trim() ?? "",
   status: normalizeStatus(request.status),
   adminDecision: normalizeDecision(request.adminDecision),
   trainerDecision: normalizeDecision(request.trainerDecision),
@@ -93,7 +108,7 @@ export const getDecisionPillClass = (decision) => {
 };
 
 export const PlanRequestProvider = ({ children }) => {
-  const { updateMemberPlan } = useMembers();
+  const { updateMemberPlan, switchMemberTrainer } = useMembers();
   const [planRequests, setPlanRequests] = useState(() => loadPlanRequests());
 
   useEffect(() => {
@@ -140,7 +155,10 @@ export const PlanRequestProvider = ({ children }) => {
     }
 
     const hasPendingRequest = planRequests.some(
-      (request) => request.memberId === member.id && request.status === "pending"
+      (request) =>
+        request.memberId === member.id &&
+        request.requestType === "plan" &&
+        request.status === "pending"
     );
 
     if (hasPendingRequest) {
@@ -153,6 +171,7 @@ export const PlanRequestProvider = ({ children }) => {
     const now = new Date().toISOString();
     const nextRequest = normalizePlanRequest({
       id: `plan-request-${member.id}-${Date.now()}`,
+      requestType: "plan",
       memberId: member.id,
       memberName: member.name,
       trainerId: member.trainerId,
@@ -175,7 +194,71 @@ export const PlanRequestProvider = ({ children }) => {
     };
   };
 
-  const reviewPlanChangeRequest = ({
+  const submitTrainerChangeRequest = ({ member, requestedTrainer }) => {
+    if (!member) {
+      return {
+        ok: false,
+        error: "Member account was not found.",
+      };
+    }
+
+    if (!requestedTrainer?.id || !requestedTrainer?.name) {
+      return {
+        ok: false,
+        error: "Choose a valid trainer before sending a request.",
+      };
+    }
+
+    if (Number(member.trainerId) === Number(requestedTrainer.id)) {
+      return {
+        ok: false,
+        error: "Choose a different trainer before sending a request.",
+      };
+    }
+
+    const hasPendingRequest = planRequests.some(
+      (request) =>
+        request.memberId === member.id &&
+        request.requestType === "trainer" &&
+        request.status === "pending"
+    );
+
+    if (hasPendingRequest) {
+      return {
+        ok: false,
+        error: "A trainer change request is already pending for this account.",
+      };
+    }
+
+    const now = new Date().toISOString();
+    const nextRequest = normalizePlanRequest({
+      id: `trainer-request-${member.id}-${Date.now()}`,
+      requestType: "trainer",
+      memberId: member.id,
+      memberName: member.name,
+      trainerId: requestedTrainer.id,
+      trainerName: requestedTrainer.name,
+      currentTrainerId: member.trainerId,
+      currentTrainerName: member.trainer,
+      requestedTrainerId: requestedTrainer.id,
+      requestedTrainerName: requestedTrainer.name,
+      status: "pending",
+      adminDecision: "pending",
+      trainerDecision: "pending",
+      createdAt: now,
+      updatedAt: now,
+      resolvedAt: null,
+    });
+
+    setPlanRequests((current) => [nextRequest, ...current]);
+
+    return {
+      ok: true,
+      request: nextRequest,
+    };
+  };
+
+  const reviewApprovalRequest = ({
     requestId,
     actorRole,
     decision,
@@ -192,9 +275,10 @@ export const PlanRequestProvider = ({ children }) => {
 
     let actionResult = {
       ok: false,
-      error: "Plan change request was not found.",
+      error: "Approval request was not found.",
     };
     let approvedPlanChange = null;
+    let approvedTrainerChange = null;
 
     setPlanRequests((current) =>
       current.map((request) => {
@@ -205,7 +289,7 @@ export const PlanRequestProvider = ({ children }) => {
         if (request.status !== "pending") {
           actionResult = {
             ok: false,
-            error: "This plan change request has already been finalized.",
+            error: "This approval request has already been finalized.",
           };
           return request;
         }
@@ -261,16 +345,26 @@ export const PlanRequestProvider = ({ children }) => {
         ) {
           nextRequest.status = "approved";
           nextRequest.resolvedAt = now;
-          approvedPlanChange = {
-            memberId: nextRequest.memberId,
-            requestedPlan: nextRequest.requestedPlan,
-          };
+          if (nextRequest.requestType === "trainer") {
+            approvedTrainerChange = {
+              memberId: nextRequest.memberId,
+              trainer: {
+                id: nextRequest.requestedTrainerId,
+                name: nextRequest.requestedTrainerName,
+              },
+            };
+          } else {
+            approvedPlanChange = {
+              memberId: nextRequest.memberId,
+              requestedPlan: nextRequest.requestedPlan,
+            };
+          }
         }
 
         actionResult = {
           ok: true,
           request: nextRequest,
-          applied: Boolean(approvedPlanChange),
+          applied: Boolean(approvedPlanChange || approvedTrainerChange),
         };
 
         return nextRequest;
@@ -281,13 +375,17 @@ export const PlanRequestProvider = ({ children }) => {
       updateMemberPlan(approvedPlanChange.memberId, approvedPlanChange.requestedPlan);
     }
 
+    if (approvedTrainerChange) {
+      switchMemberTrainer(approvedTrainerChange.memberId, approvedTrainerChange.trainer);
+    }
+
     return actionResult;
   };
 
-  const removePlanChangeRequest = ({ requestId, actorRole, trainerId = null }) => {
+  const removeApprovalRequest = ({ requestId, actorRole, trainerId = null }) => {
     let actionResult = {
       ok: false,
-      error: "Plan change request was not found.",
+      error: "Approval request was not found.",
     };
 
     setPlanRequests((current) =>
@@ -326,9 +424,13 @@ export const PlanRequestProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       planRequests,
+      approvalRequests: planRequests,
       submitPlanChangeRequest,
-      reviewPlanChangeRequest,
-      removePlanChangeRequest,
+      submitTrainerChangeRequest,
+      reviewPlanChangeRequest: reviewApprovalRequest,
+      reviewApprovalRequest,
+      removePlanChangeRequest: removeApprovalRequest,
+      removeApprovalRequest,
     }),
     [planRequests]
   );
