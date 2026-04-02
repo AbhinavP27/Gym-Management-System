@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { members as initialMembers } from "../data/dashboard";
+import { hasTrainerAccess } from "../utils/memberAccess";
 
 const STORAGE_KEY = "urbangrind-members";
 const MemberContext = createContext(null);
@@ -38,12 +39,15 @@ const normalizeMember = (member) => {
   const id = Number(member.id);
   const name = member.name?.trim() ?? "";
 
+  const plan = member.plan?.trim() ?? "";
+  const canHaveTrainer = hasTrainerAccess(plan);
+
   return {
     id,
     name,
-    plan: member.plan?.trim() ?? "",
-    trainerId: Number(member.trainerId) || null,
-    trainer: member.trainer?.trim() ?? "",
+    plan,
+    trainerId: canHaveTrainer ? (Number(member.trainerId) || null) : null,
+    trainer: canHaveTrainer ? (member.trainer?.trim() ?? "") : "",
     expiry: member.expiry ?? "",
     email: member.email?.trim() || buildDefaultEmail(name, id),
     password: member.password ?? "",
@@ -160,12 +164,15 @@ export const MemberProvider = ({ children }) => {
   };
 
   const updateMemberPlan = (memberId, nextPlanName) => {
+    const canHaveTrainer = hasTrainerAccess(nextPlanName);
     setMemberRecords((current) =>
       current.map((member) =>
         member.id === memberId
           ? {
               ...member,
               plan: nextPlanName,
+              trainerId: canHaveTrainer ? member.trainerId : null,
+              trainer: canHaveTrainer ? member.trainer : "",
               expiry: addMonths(new Date().toISOString().slice(0, 10), 1),
             }
           : member
@@ -204,15 +211,16 @@ export const MemberProvider = ({ children }) => {
 
   const switchMemberTrainer = (memberId, trainer) => {
     setMemberRecords((current) =>
-      current.map((member) =>
-        member.id === memberId
-          ? {
-              ...member,
-              trainerId: trainer?.id ?? null,
-              trainer: trainer?.name ?? "",
-            }
-          : member
-      )
+      current.map((member) => {
+        if (member.id !== memberId) return member;
+
+        const canHaveTrainer = hasTrainerAccess(member.plan);
+        return {
+          ...member,
+          trainerId: canHaveTrainer ? (trainer?.id ?? null) : null,
+          trainer: canHaveTrainer ? (trainer?.name ?? "") : "",
+        };
+      })
     );
   };
 

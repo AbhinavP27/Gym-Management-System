@@ -29,7 +29,7 @@ export const sidebarConfig = {
     { name: "Trainers", path: "/admin/trainers", icon: FaDumbbell },
 
     { name: "Membership Plans", path: "/admin/membership", icon: FaClipboardList },
-    { name: "Payments", path: "/admin/payments", icon: FaCreditCard },
+    // { name: "Payments", path: "/admin/payments", icon: FaCreditCard },
 
     { name: "Attendance", path: "/admin/attendance", icon: FaCalendarCheck },
     { name: "Reports", path: "/admin/reports", icon: FaChartBar },
@@ -62,7 +62,7 @@ export const sidebarConfig = {
     { name: "Progress", path: "/user/progress", icon: FaRunning },
     { name: "Attendance", path: "/user/attendance", icon: FaCalendarCheck },
 
-    { name: "Payments", path: "/user/payments", icon: FaCreditCard },
+    // { name: "Payments", path: "/user/payments", icon: FaCreditCard },
 
     { name: "Profile", path: "/user/profile", icon: FaUser },
     { name: "Settings", path: "/user/settings", icon: FaCog },

@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useMembers } from "../context/MemberContext";
 import { useTrainerDirectory } from "../context/TrainerContext";
+import { useAuth } from "../context/AuthContext";
 import "./styles/Login.css";
 
 const Login = () => {
@@ -14,6 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { members } = useMembers();
   const { trainers } = useTrainerDirectory();
+  const { login } = useAuth();
 
   const validate = () => {
     const newErrors = {};
@@ -46,16 +48,28 @@ const Login = () => {
       matchedMember.password?.trim() &&
       matchedMember.password.trim() !== normalizedPassword;
 
+    const trainerPasswordMismatch =
+      matchedTrainer &&
+      matchedTrainer.password?.trim() &&
+      matchedTrainer.password.trim() !== normalizedPassword;
+
     if (normalizedEmail === "admin@urbangrind.com") {
+      login({ id: "admin", role: "admin", email: normalizedEmail });
       navigate("/admin");
+    } else if (trainerPasswordMismatch) {
+      toast.error("Invalid password for this trainer account.");
+      return;
     } else if (matchedTrainer) {
+      login({ id: matchedTrainer.id, role: "trainer", email: normalizedEmail, name: matchedTrainer.name });
       navigate(`/trainer/${matchedTrainer.id}`);
     } else if (normalizedEmail === "trainer@urbangrind.com" && trainers[0]) {
+      login({ id: trainers[0].id, role: "trainer", email: normalizedEmail, name: trainers[0].name });
       navigate(`/trainer/${trainers[0].id}`);
     } else if (memberPasswordMismatch) {
       toast.error("Invalid password for this member account.");
       return;
     } else if (matchedMember) {
+      login({ id: matchedMember.id, role: "user", email: normalizedEmail, name: matchedMember.name });
       navigate(`/user/${matchedMember.id}`);
     } else {
       toast.error("No account found for this email.");

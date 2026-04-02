@@ -73,6 +73,8 @@ const Trainers = () => {
     specialization: "",
     certificates: "",
     experience: "",
+    email: "",
+    password: "",
     image: "",
     imageName: "",
   });
@@ -113,6 +115,8 @@ const Trainers = () => {
       specialization: "",
       certificates: "",
       experience: "",
+      email: "",
+      password: "",
       image: "",
       imageName: "",
     });
@@ -129,6 +133,8 @@ const Trainers = () => {
       specialization: trainer.specialization,
       certificates: trainer.certificates ?? "",
       experience: trainer.experience ?? "",
+      email: trainer.email ?? "",
+      password: trainer.password ?? "",
       image: trainer.image ?? "",
       imageName: trainer.image ? "Current image selected" : "",
     });
@@ -162,6 +168,8 @@ const Trainers = () => {
         specialization,
         certificates: form.certificates.trim(),
         experience: form.experience.trim(),
+        email: form.email.trim(),
+        password: form.password.trim(),
         image: form.image,
       });
     } else {
@@ -170,6 +178,8 @@ const Trainers = () => {
         specialization,
         certificates: form.certificates.trim(),
         experience: form.experience.trim(),
+        email: form.email.trim(),
+        password: form.password.trim(),
         image: form.image,
       });
     }
@@ -246,6 +256,22 @@ const Trainers = () => {
             type="text"
             placeholder="Experience"
             value={form.experience}
+            onChange={handleChange}
+          />
+          <input
+            name="email"
+            type="email"
+            placeholder="Login Email (Optional)"
+            className="trainer-credentials-field"
+            value={form.email}
+            onChange={handleChange}
+          />
+          <input
+            name="password"
+            type="text"
+            placeholder="Login Password (Optional)"
+            className="trainer-credentials-field"
+            value={form.password}
             onChange={handleChange}
           />
           <div className="trainer-file-field">

@@ -4,15 +4,22 @@ import "./styl/Sidebar.css";
 import { sidebarConfig } from "../../../data/sidebarConfig";
 import { useMembers } from "../../../context/MemberContext";
 import { hasTrainerAccess } from "../../../utils/memberAccess";
+import { useAuth } from "../../../context/AuthContext";
 
 const Sidebar = ({ role , isMobile, isOpen, setIsOpen }) => {
   const { trainerId, userId } = useParams();
   const { getMemberById } = useMembers();
+  const { logout } = useAuth();
   const member = role === "user" ? getMemberById(userId) : null;
   const hasPremiumAccess = hasTrainerAccess(member?.plan);
 
   const handleClose = () => {
     if (isMobile) setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleClose();
   };
 
   const menuItems = sidebarConfig[role] || [];
@@ -59,7 +66,7 @@ const Sidebar = ({ role , isMobile, isOpen, setIsOpen }) => {
         })}
 
         <li>
-          <Link to="/login" className="logout">
+          <Link to="/login" className="logout" onClick={handleLogout}>
             Logout
           </Link>
         </li>

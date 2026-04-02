@@ -39,6 +39,7 @@ const normalizeTrainer = (trainer) => ({
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, ".")
       .replace(/(^\.|\.$)/g, "")}@urbangrind.com`,
+  password: trainer.password || "123456",
   members: Number(trainer.members) || 0,
   image: trainer.image ?? "",
   certificates: trainer.certificates ?? "",
@@ -140,6 +141,8 @@ export const TrainerProvider = ({ children }) => {
     image,
     certificates,
     experience,
+    email,
+    password,
   }) => {
     setTrainerRoster((current) => [
       ...current,
@@ -148,6 +151,8 @@ export const TrainerProvider = ({ children }) => {
         name,
         role: specialization,
         specialization,
+        email: email || undefined,
+        password: password || undefined,
         members: 0,
         image: image ?? "",
         status: TRAINER_STATUSES[0],
@@ -165,6 +170,8 @@ export const TrainerProvider = ({ children }) => {
     image,
     certificates,
     experience,
+    email,
+    password,
   }) => {
     setTrainerRoster((current) =>
       current.map((trainer) =>
@@ -174,6 +181,8 @@ export const TrainerProvider = ({ children }) => {
               name,
               role: specialization,
               specialization,
+              email: email || trainer.email,
+              password: password || trainer.password,
               image: image ?? trainer.image ?? "",
               certificates: certificates ?? trainer.certificates ?? "",
               experience: experience ?? trainer.experience ?? "",

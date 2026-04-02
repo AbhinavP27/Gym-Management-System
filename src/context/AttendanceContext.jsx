@@ -2,34 +2,57 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useMembers } from "./MemberContext";
 import { useTrainerDirectory } from "./TrainerContext";
 
-const STORAGE_KEY = "urbangrind-attendance";
+const STORAGE_KEY = "urbangrind-attendance-v2";
 const AttendanceContext = createContext(null);
 
 export const getToday = () => new Date().toISOString().split("T")[0];
 
-const buildAttendanceRoster = (trainers, members) => {
-  const today = getToday();
+const generatePastDays = (numDays) => {
+  const dates = [];
+  const today = new Date();
+  for (let i = 0; i < numDays; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    dates.push(d.toISOString().split("T")[0]);
+  }
+  return dates;
+};
 
-  return [
-    ...trainers.map((trainer, index) => ({
-      id: `trainer-${trainer.id}`,
-      userId: trainer.id,
-      name: trainer.name,
-      role: "trainer",
-      trainerId: null,
-      date: today,
-      status: index % 2 === 0 ? "Present" : "Absent",
-    })),
-    ...members.map((member, index) => ({
-      id: `member-${member.id}`,
-      userId: member.id,
-      name: member.name,
-      role: "member",
-      trainerId: member.trainerId,
-      date: today,
-      status: index % 4 === 0 ? "Absent" : "Present",
-    })),
-  ];
+const buildAttendanceRoster = (trainers, members) => {
+  const dates = generatePastDays(30);
+  const roster = [];
+
+  dates.forEach((date) => {
+    trainers.forEach((trainer, index) => {
+      const charCode = date.charCodeAt(date.length - 1) || 0;
+      const seed = charCode + index;
+      roster.push({
+        id: `trainer-${trainer.id}-${date}`,
+        userId: trainer.id,
+        name: trainer.name,
+        role: "trainer",
+        trainerId: null,
+        date: date,
+        status: seed % 7 === 0 ? "Absent" : "Present", // Mostly present
+      });
+    });
+
+    members.forEach((member, index) => {
+      const charCode = date.charCodeAt(date.length - 1) || 0;
+      const seed = charCode + index;
+      roster.push({
+        id: `member-${member.id}-${date}`,
+        userId: member.id,
+        name: member.name,
+        role: "member",
+        trainerId: member.trainerId,
+        date: date,
+        status: seed % 4 === 0 ? "Absent" : "Present", // Sometimes absent
+      });
+    });
+  });
+
+  return roster;
 };
 
 const normalizeAttendance = (entries) => {
@@ -68,23 +91,16 @@ const loadStoredAttendance = () => {
 };
 
 const syncRoster = (currentEntries, trainers, members) => {
-  const today = getToday();
-  const currentMap = new Map(
-    currentEntries
-      .filter((entry) => entry.date === today)
-      .map((entry) => [entry.id, entry])
-  );
-
-  return buildAttendanceRoster(trainers, members).map((entry) => {
-    const existing = currentMap.get(entry.id);
-
-    return existing
-      ? {
-          ...entry,
-          status: existing.status,
-        }
-      : entry;
+  const existingMap = new Map(currentEntries.map(e => [e.id, e]));
+  const defaultRoster = buildAttendanceRoster(trainers, members);
+  
+  defaultRoster.forEach(entry => {
+    if (!existingMap.has(entry.id)) {
+      existingMap.set(entry.id, entry);
+    }
   });
+
+  return Array.from(existingMap.values());
 };
 
 export const AttendanceProvider = ({ children }) => {
