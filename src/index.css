@@ -68,14 +68,109 @@ button:focus-visible {
 } */
 
 
-html{
+:root {
+  /* Default Dark */
+  --bg-gradient: linear-gradient(to bottom, #0f0f0f, #1a1a1a);
+  --sidebar-bg: linear-gradient(to bottom, rgba(22, 22, 22, 0.85), rgba(13, 13, 13, 0.78));
+  --accent-color: #3b82f6;
+  --accent-hover: #2563eb;
+  --card-bg: rgba(17, 24, 39, 0.7);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.05);
+  --topbar-bg: #020617;
+  --input-bg: rgba(0, 0, 0, 0.2);
+}
+
+body.theme-light {
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  --sidebar-bg: #ffffff;
+  --accent-color: #3b82f6;
+  --accent-hover: #2563eb;
+  --card-bg: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --topbar-bg: #f8fafc;
+  --input-bg: #f1f5f9;
+}
+
+body.theme-midnight {
+  --bg-gradient: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+  --sidebar-bg: rgba(30, 41, 59, 0.85);
+  --accent-color: #818cf8;
+  --accent-hover: #6366f1;
+  --card-bg: rgba(15, 23, 42, 0.9);
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(99, 102, 241, 0.2);
+  --topbar-bg: #020617;
+}
+
+body.theme-emerald {
+  --bg-gradient: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+  --sidebar-bg: rgba(6, 78, 59, 0.6);
+  --accent-color: #10b981;
+  --accent-hover: #059669;
+  --card-bg: rgba(2, 44, 34, 0.8);
+  --text-primary: #ecfdf5;
+  --text-secondary: #a7f3d0;
+  --border-color: rgba(16, 185, 129, 0.2);
+  --topbar-bg: #064e3b;
+}
+
+body.theme-sunset {
+  --bg-gradient: linear-gradient(135deg, #312e81 0%, #831843 100%);
+  --sidebar-bg: rgba(0, 0, 0, 0.4);
+  --accent-color: #f472b6;
+  --accent-hover: #ec4899;
+  --card-bg: rgba(0, 0, 0, 0.3);
+  --text-primary: #fff;
+  --text-secondary: #f9a8d4;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --topbar-bg: transparent;
+}
+
+body.theme-ocean {
+  --bg-gradient: linear-gradient(135deg, #0c4a6e 0%, #0369a1 100%);
+  --sidebar-bg: rgba(12, 74, 110, 0.7);
+  --accent-color: #0ea5e9;
+  --accent-hover: #0284c7;
+  --card-bg: rgba(15, 23, 42, 0.6);
+  --text-primary: #f0f9ff;
+  --text-secondary: #bae6fd;
+  --border-color: rgba(14, 165, 233, 0.3);
+  --topbar-bg: #0c4a6e;
+}
+
+body.theme-obsidian {
+  --bg-gradient: linear-gradient(to bottom, #000 0%, #0a0a0a 100%);
+  --sidebar-bg: rgba(18, 18, 18, 0.95);
+  --accent-color: #fbbf24;
+  --accent-hover: #f59e0b;
+  --card-bg: rgba(10, 10, 10, 0.85);
+  --text-primary: #fffbeb;
+  --text-secondary: #fef3c7;
+  --border-color: rgba(251, 191, 36, 0.15);
+  --topbar-bg: #000;
+}
+
+html {
   scroll-behavior: smooth;
 }
 
-*{
+body {
   margin: 0;
   padding: 0;
-  background-color: linear-gradient(to right, #000000, #434343);
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
+
+/* Base resets */
+* {
+  box-sizing: border-box;
 }
 
 .main-content {
@@ -83,77 +178,50 @@ html{
   padding: 20px;
 }
 
-
-
 .topbar {
   height: 60px;
-  background: #020617;
+  background: var(--topbar-bg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .topbar-left h2 {
-  color: white;
+  color: var(--text-primary);
   font-size: 18px;
 }
 
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-/* Search */
 .search-box {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #0f172a;
-  padding: 6px 10px;
+  background: var(--input-bg);
+  padding: 8px 12px;
   border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
 .search-box input {
   background: transparent;
   border: none;
   outline: none;
-  color: white;
+  color: var(--text-primary);
 }
 
-/* Icons */
 .icon {
-  color: #94a3b8;
+  color: var(--text-secondary);
   cursor: pointer;
+  transition: color 0.2s;
 }
 
 .icon:hover {
-  color: white;
+  color: var(--accent-color);
 }
 
-/* Profile */
-.profile img {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
-/* Menu button */
-.menu-btn {
-  background: #0f172a;
-  border: none;
-  padding: 8px;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
+select option {
+  background-color: #fff;
+  color: #000;
 }
 

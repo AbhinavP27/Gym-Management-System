@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { FaBell } from "react-icons/fa";
+import toast from "react-hot-toast";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useMembers } from "../../../context/MemberContext";
 import { hasTrainerAccess } from "../../../utils/memberAccess";
@@ -10,7 +12,7 @@ const normalizeSearch = (value = "") =>
 
 const Members = ({ role = "admin", userId = null }) => {
   const { trainerId: trainerIdParam } = useParams();
-  const { members: memberRoster } = useMembers();
+  const { members: memberRoster, sendPlanReminder } = useMembers();
   const [query, setQuery] = useState("");
   const [planFilter, setPlanFilter] = useState("");
   const [trainerFilter, setTrainerFilter] = useState("");
@@ -71,6 +73,15 @@ const Members = ({ role = "admin", userId = null }) => {
     ? "No Gold or Diamond members are assigned to this trainer yet."
     : "No members available.";
 
+  const handleRemind = async (memberId) => {
+    const res = await sendPlanReminder(memberId);
+    if (res.ok) {
+      toast.success("Reminder sent and logged successfully!");
+    } else {
+      toast.error(res.error || "Failed to send reminder.");
+    }
+  };
+
   return (
     <DashboardLayout role={role}>
       <div className="members-page">
@@ -125,6 +136,7 @@ const Members = ({ role = "admin", userId = null }) => {
             <span>Plan</span>
             {!isTrainerView && <span>Trainer</span>}
             <span>Expiry</span>
+            <span style={{ textAlign: 'center' }}>Action</span>
           </div>
 
           <div className="table-body">
@@ -137,6 +149,15 @@ const Members = ({ role = "admin", userId = null }) => {
                 <span>{member.plan}</span>
                 {!isTrainerView && <span>{member.trainer}</span>}
                 <span>{member.expiry}</span>
+                <span style={{ display: 'flex', justifyContent: 'center' }}>
+                  <button 
+                    onClick={() => handleRemind(member.id)}
+                    className="remind-btn"
+                    title="Send Expiry Reminder"
+                  >
+                    <FaBell />
+                  </button>
+                </span>
               </div>
             ))}
 

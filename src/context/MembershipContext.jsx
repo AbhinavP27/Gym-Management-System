@@ -5,109 +5,66 @@ import {
   useMemo,
   useState,
 } from "react";
-import { membershipPlans as initialMembershipPlans } from "../data/dashboard";
+import api from "../services/api";
+import { useAuth } from "./AuthContext";
 
-const STORAGE_KEY = "urbangrind-membership-plans";
 const MembershipContext = createContext(null);
 
-const normalizePlan = (plan, fallbackId) => ({
-  id: Number(plan.id) || fallbackId,
-  name: plan.name?.trim() ?? "",
-  price: plan.price?.trim() ?? "",
-  features: Array.isArray(plan.features)
-    ? plan.features.map((feature) => feature.trim()).filter(Boolean)
-    : [],
-  popular: Boolean(plan.popular),
-  trainerRequired: Boolean(plan.trainerRequired),
-});
-
-const loadMembershipPlans = () => {
-  const fallback = initialMembershipPlans.map((plan, index) =>
-    normalizePlan(plan, index + 1)
-  );
-
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return fallback;
-    }
-
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return fallback;
-    }
-
-    return parsed.map((plan, index) => normalizePlan(plan, index + 1));
-  } catch {
-    return fallback;
-  }
-};
-
 export const MembershipProvider = ({ children }) => {
-  const [plans, setPlans] = useState(() => loadMembershipPlans());
+  const { currentUser } = useAuth();
+  const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(plans));
-  }, [plans]);
-
-  useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key !== STORAGE_KEY) {
-        return;
-      }
-
-      setPlans(loadMembershipPlans());
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
-  const savePlan = ({ id, name, price, features, popular, trainerRequired }) => {
-    setPlans((current) => {
-      const normalizedPlan = normalizePlan(
-        {
-          id,
-          name,
-          price,
-          features,
-          popular,
-          trainerRequired,
-        },
-        current.length ? Math.max(...current.map((plan) => plan.id)) + 1 : 1
-      );
-
-      const withoutCurrent = current.filter((plan) => plan.id !== normalizedPlan.id);
-      const nextPlans = [...withoutCurrent, normalizedPlan].sort(
-        (first, second) => first.id - second.id
-      );
-
-      if (!normalizedPlan.popular) {
-        return nextPlans;
-      }
-
-      return nextPlans.map((plan) => ({
-        ...plan,
-        popular: plan.id === normalizedPlan.id,
-      }));
-    });
+  const fetchPlans = async () => {
+    try {
+      const response = await api.get("plans/");
+      setPlans(response.data);
+    } catch (error) {
+      console.error("Failed to fetch plans", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deletePlan = (planId) => {
-    setPlans((current) => current.filter((plan) => plan.id !== planId));
+  useEffect(() => {
+    fetchPlans();
+  }, [currentUser]);
+
+  const savePlan = async (planData) => {
+    try {
+      if (planData.id) {
+        await api.put(`plans/${planData.id}/`, planData);
+      } else {
+        await api.post("plans/", planData);
+      }
+      fetchPlans();
+      return { ok: true };
+    } catch (error) {
+      console.error("Failed to save plan", error);
+      return { ok: false, error: "Failed to save plan" };
+    }
+  };
+
+  const deletePlan = async (planId) => {
+    try {
+      await api.delete(`plans/${planId}/`);
+      fetchPlans();
+      return { ok: true };
+    } catch (error) {
+      console.error("Failed to delete plan", error);
+      return { ok: false, error: "Failed to delete plan" };
+    }
   };
 
   const value = useMemo(
     () => ({
       plans,
+      loading,
       savePlan,
       deletePlan,
+      refreshPlans: fetchPlans
     }),
-    [plans]
+    [plans, loading]
   );
 
   return (

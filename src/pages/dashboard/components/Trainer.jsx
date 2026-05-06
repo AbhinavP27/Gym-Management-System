@@ -65,7 +65,7 @@ const compressImage = (source) =>
   });
 
 const Trainers = () => {
-  const { trainers, addTrainer, saveTrainer, deleteTrainer } = useTrainerDirectory();
+  const { trainers, saveTrainer, deleteTrainer } = useTrainerDirectory();
   const [editingId, setEditingId] = useState(null);
   const [trainerPendingDelete, setTrainerPendingDelete] = useState(null);
   const [form, setForm] = useState({
@@ -154,37 +154,47 @@ const Trainers = () => {
     setTrainerPendingDelete(null);
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const name = form.name.trim();
     const specialization = form.specialization.trim();
-    if (!name || !specialization) return;
-
-    if (editingId) {
-      saveTrainer({
-        id: editingId,
-        name,
-        specialization,
-        certificates: form.certificates.trim(),
-        experience: form.experience.trim(),
-        email: form.email.trim(),
-        password: form.password.trim(),
-        image: form.image,
-      });
-    } else {
-      addTrainer({
-        name,
-        specialization,
-        certificates: form.certificates.trim(),
-        experience: form.experience.trim(),
-        email: form.email.trim(),
-        password: form.password.trim(),
-        image: form.image,
-      });
+    if (!name || !specialization) {
+      toast.error("Name and Specialization are required");
+      return;
     }
 
-    resetForm(event.target);
+    const payload = {
+      name,
+      specialization,
+      certificates: form.certificates.trim(),
+      experience: form.experience.trim(),
+    };
+
+    if (editingId) {
+      payload.id = editingId;
+    } else {
+      payload.email = form.email.trim();
+      payload.password = form.password.trim();
+      payload.image = form.image;
+    }
+
+    const loadingToast = toast.loading(editingId ? "Updating trainer..." : "Adding trainer...");
+
+    try {
+      const result = await saveTrainer(payload);
+      if (result.ok) {
+        toast.success(
+          editingId ? "Trainer updated successfully!" : "Trainer added successfully!",
+          { id: loadingToast }
+        );
+        resetForm(event.target);
+      } else {
+        toast.error(result.error || "Failed to save trainer", { id: loadingToast });
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred", { id: loadingToast });
+    }
   };
 
   const summary = useMemo(
@@ -258,38 +268,44 @@ const Trainers = () => {
             value={form.experience}
             onChange={handleChange}
           />
-          <input
-            name="email"
-            type="email"
-            placeholder="Login Email (Optional)"
-            className="trainer-credentials-field"
-            value={form.email}
-            onChange={handleChange}
-          />
-          <input
-            name="password"
-            type="text"
-            placeholder="Login Password (Optional)"
-            className="trainer-credentials-field"
-            value={form.password}
-            onChange={handleChange}
-          />
-          <div className="trainer-file-field">
+          {!editingId && (
             <input
-              id="trainer-image-upload"
-              className="trainer-file-input"
-              name="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
+              name="email"
+              type="email"
+              placeholder="Login Email (Optional)"
+              className="trainer-credentials-field"
+              value={form.email}
+              onChange={handleChange}
             />
-            <label htmlFor="trainer-image-upload" className="trainer-file-button">
-              Choose Image
-            </label>
-            <span className="trainer-file-name">
-              {form.imageName || "No file selected"}
-            </span>
-          </div>
+          )}
+          {!editingId && (
+            <input
+              name="password"
+              type="text"
+              placeholder="Login Password (Optional)"
+              className="trainer-credentials-field"
+              value={form.password}
+              onChange={handleChange}
+            />
+          )}
+          {!editingId && (
+            <div className="trainer-file-field">
+              <input
+                id="trainer-image-upload"
+                className="trainer-file-input"
+                name="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              <label htmlFor="trainer-image-upload" className="trainer-file-button">
+                Choose Image
+              </label>
+              <span className="trainer-file-name">
+                {form.imageName || "No file selected"}
+              </span>
+            </div>
+          )}
           <button type="submit">{editingId ? "Update Trainer" : "Add Trainer"}</button>
           {editingId && (
             <button

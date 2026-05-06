@@ -69,10 +69,10 @@ const AdminDashboard = () => {
     () =>
       allMembers
         .flatMap((member) =>
-          member.feedback.map((entry) => ({
+          (member.feedback || []).map((entry) => ({
             ...entry,
             memberId: member.id,
-            memberName: member.name,
+            memberName: member.name || "Unknown Member",
             trainer: member.trainer || "Not assigned",
             isDeleted: member.isDeleted,
           }))

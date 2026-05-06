@@ -19,6 +19,7 @@ import {
   FaDashcube,
   FaBlenderPhone,
   FaHouseUser,
+  FaBullhorn,
 } from "react-icons/fa";
 
 export const sidebarConfig = {
@@ -32,9 +33,10 @@ export const sidebarConfig = {
     // { name: "Payments", path: "/admin/payments", icon: FaCreditCard },
 
     { name: "Attendance", path: "/admin/attendance", icon: FaCalendarCheck },
-    { name: "Reports", path: "/admin/reports", icon: FaChartBar },
+    // { name: "Reports", path: "/admin/reports", icon: FaChartBar },
 
     { name: "Settings", path: "/admin/settings", icon: FaCog },
+    { name: "Broadcast", path: "/admin/broadcast", icon: FaBullhorn },
   ],
 
   trainer: [
@@ -47,7 +49,7 @@ export const sidebarConfig = {
     { name: "Diet Plans", path: "/trainer/diets", icon: FaClipboardList },
     { name: "Progress Tracking", path: "/trainer/progress", icon: FaRunning },
 
-    { name: "Messages", path: "/trainer/messages", icon: FaComments },
+    { name: "Broadcast", path: "/trainer/broadcast", icon: FaBullhorn },
 
     { name: "Settings", path: "/trainer/settings", icon: FaCog },
   ],

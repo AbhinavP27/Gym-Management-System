@@ -5,20 +5,10 @@ import {
   useMemo,
   useState,
 } from "react";
-import { trainers as initialTrainerRoster } from "../data/dashboard";
-import { useMembers } from "./MemberContext";
-import { hasTrainerAccess } from "../utils/memberAccess";
+import api from "../services/api";
+import { useAuth } from "./AuthContext";
 
-const STORAGE_KEY = "urbangrind-trainer-roster";
 const TrainerContext = createContext(null);
-const TRAINER_SEED_BY_ID = new Map(
-  initialTrainerRoster.map((trainer) => [Number(trainer.id), trainer])
-);
-const TRAINER_NAME_MIGRATION = {
-  "Smith Doe": "Tharun Kumar",
-  "Emily Smith": "Varsha Tharun",
-  "Michael John": "Alen Mathew",
-};
 
 export const TRAINER_STATUSES = ["Active", "Busy", "On Leave"];
 
@@ -28,185 +18,74 @@ export const getTrainerStatusClass = (status) => {
   return "pill--amber";
 };
 
-const normalizeTrainer = (trainer) => ({
-  ...trainer,
-  name: TRAINER_NAME_MIGRATION[trainer.name] ?? trainer.name ?? "",
-  specialization: trainer.specialization ?? trainer.role ?? "",
-  email:
-    trainer.email?.trim() ||
-    TRAINER_SEED_BY_ID.get(Number(trainer.id))?.email?.trim() ||
-    `${(TRAINER_NAME_MIGRATION[trainer.name] ?? trainer.name ?? "trainer")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, ".")
-      .replace(/(^\.|\.$)/g, "")}@urbangrind.com`,
-  password: trainer.password || "123456",
-  members: Number(trainer.members) || 0,
-  image: trainer.image ?? "",
-  certificates: trainer.certificates ?? "",
-  experience: trainer.experience ?? "",
-  details: trainer.details ?? "",
-  status: TRAINER_STATUSES.includes(trainer.status)
-    ? trainer.status
-    : TRAINER_STATUSES[0],
-});
-
-const loadTrainerRoster = () => {
-  const fallback = initialTrainerRoster.map(normalizeTrainer);
-
-  if (typeof window === "undefined") {
-    return fallback;
-  }
-
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return fallback;
-    }
-
-    const parsed = JSON.parse(stored);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      return fallback;
-    }
-
-    const normalizedStored = parsed.map(normalizeTrainer);
-    const storedById = new Map(normalizedStored.map((trainer) => [Number(trainer.id), trainer]));
-    const mergedSeedTrainers = fallback.map((seedTrainer) =>
-      normalizeTrainer({
-        ...seedTrainer,
-        ...storedById.get(Number(seedTrainer.id)),
-      })
-    );
-    const customTrainers = normalizedStored.filter(
-      (trainer) => !TRAINER_SEED_BY_ID.has(Number(trainer.id))
-    );
-
-    return [...mergedSeedTrainers, ...customTrainers];
-  } catch {
-    return fallback;
-  }
-};
-
 export const TrainerProvider = ({ children }) => {
-  const { members } = useMembers();
-  const [trainerRoster, setTrainerRoster] = useState(() => loadTrainerRoster());
+  const { currentUser } = useAuth();
+  const [trainers, setTrainers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const trainers = useMemo(() => {
-    const memberCountByTrainer = members.reduce((accumulator, member) => {
-      if (member.trainerId == null || !hasTrainerAccess(member.plan)) {
-        return accumulator;
-      }
-
-      accumulator[member.trainerId] = (accumulator[member.trainerId] ?? 0) + 1;
-      return accumulator;
-    }, {});
-
-    return trainerRoster.map((trainer) => ({
-      ...trainer,
-      members: memberCountByTrainer[trainer.id] ?? 0,
-    }));
-  }, [members, trainerRoster]);
-
-  useEffect(() => {
+  const fetchTrainers = async () => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trainerRoster));
+      const response = await api.get("trainers/");
+      setTrainers(response.data);
     } catch (error) {
-      console.error("Failed to persist trainer roster", error);
+      console.error("Failed to fetch trainers", error);
+    } finally {
+      setLoading(false);
     }
-  }, [trainerRoster]);
+  };
 
   useEffect(() => {
-    const handleStorage = (event) => {
-      if (event.key !== STORAGE_KEY) {
-        return;
+    fetchTrainers();
+  }, [currentUser]);
+
+  const updateTrainerStatus = async (trainerId, status) => {
+    try {
+      await api.patch(`trainers/${trainerId}/`, { status });
+      fetchTrainers();
+    } catch (error) {
+      console.error("Failed to update status", error);
+    }
+  };
+
+  const saveTrainer = async (trainerData) => {
+    try {
+      if (trainerData.id) {
+        await api.patch(`trainers/${trainerData.id}/`, trainerData);
+      } else {
+        await api.post("trainers/", trainerData);
       }
-
-      setTrainerRoster(loadTrainerRoster());
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
-
-  const updateTrainerStatus = (trainerId, status) => {
-    setTrainerRoster((current) =>
-      current.map((trainer) =>
-        trainer.id === trainerId ? { ...trainer, status } : trainer
-      )
-    );
+      fetchTrainers();
+      return { ok: true };
+    } catch (error) {
+      console.error("Failed to save trainer", error);
+      const message = error.response?.data
+        ? Object.values(error.response.data).flat().join(" ")
+        : "Failed to save trainer";
+      return { ok: false, error: message };
+    }
   };
 
-  const addTrainer = ({
-    name,
-    specialization,
-    image,
-    certificates,
-    experience,
-    email,
-    password,
-  }) => {
-    setTrainerRoster((current) => [
-      ...current,
-      {
-        id: current.length ? Math.max(...current.map((trainer) => trainer.id)) + 1 : 1,
-        name,
-        role: specialization,
-        specialization,
-        email: email || undefined,
-        password: password || undefined,
-        members: 0,
-        image: image ?? "",
-        status: TRAINER_STATUSES[0],
-        certificates: certificates ?? "",
-        experience: experience ?? "",
-        details: "",
-      },
-    ]);
-  };
-
-  const saveTrainer = ({
-    id,
-    name,
-    specialization,
-    image,
-    certificates,
-    experience,
-    email,
-    password,
-  }) => {
-    setTrainerRoster((current) =>
-      current.map((trainer) =>
-        trainer.id === id
-          ? {
-              ...trainer,
-              name,
-              role: specialization,
-              specialization,
-              email: email || trainer.email,
-              password: password || trainer.password,
-              image: image ?? trainer.image ?? "",
-              certificates: certificates ?? trainer.certificates ?? "",
-              experience: experience ?? trainer.experience ?? "",
-            }
-          : trainer
-      )
-    );
-  };
-
-  const deleteTrainer = (trainerId) => {
-    setTrainerRoster((current) =>
-      current.filter((trainer) => trainer.id !== trainerId)
-    );
+  const deleteTrainer = async (trainerId) => {
+    try {
+      await api.delete(`trainers/${trainerId}/`);
+      fetchTrainers();
+      return { ok: true };
+    } catch (error) {
+      console.error("Failed to delete trainer", error);
+      return { ok: false, error: "Failed to delete trainer" };
+    }
   };
 
   const value = useMemo(
     () => ({
       trainers,
-      addTrainer,
+      loading,
       saveTrainer,
       deleteTrainer,
       updateTrainerStatus,
+      refreshTrainers: fetchTrainers
     }),
-    [trainers]
+    [trainers, loading]
   );
 
   return (

@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useMembers } from "../context/MemberContext";
-import { useTrainerDirectory } from "../context/TrainerContext";
 import { useAuth } from "../context/AuthContext";
 import "./styles/Login.css";
 
@@ -13,9 +11,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [showPrivacy, setShowPrivacy] = useState(false);
   const navigate = useNavigate();
-  const { members } = useMembers();
-  const { trainers } = useTrainerDirectory();
-  const { login } = useAuth();
+  const { login, loading } = useAuth();
 
   const validate = () => {
     const newErrors = {};
@@ -30,52 +26,29 @@ const Login = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length) return;
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedPassword = password.trim();
-    const matchedTrainer = trainers.find(
-      (trainer) => trainer.email?.trim().toLowerCase() === normalizedEmail
-    );
-    const matchedMember = members.find(
-      (member) => member.email?.trim().toLowerCase() === normalizedEmail
-    );
-    const memberPasswordMismatch =
-      matchedMember &&
-      matchedMember.password?.trim() &&
-      matchedMember.password.trim() !== normalizedPassword;
 
-    const trainerPasswordMismatch =
-      matchedTrainer &&
-      matchedTrainer.password?.trim() &&
-      matchedTrainer.password.trim() !== normalizedPassword;
+    const result = await login(email.trim(), password.trim());
 
-    if (normalizedEmail === "admin@urbangrind.com") {
-      login({ id: "admin", role: "admin", email: normalizedEmail });
-      navigate("/admin");
-    } else if (trainerPasswordMismatch) {
-      toast.error("Invalid password for this trainer account.");
-      return;
-    } else if (matchedTrainer) {
-      login({ id: matchedTrainer.id, role: "trainer", email: normalizedEmail, name: matchedTrainer.name });
-      navigate(`/trainer/${matchedTrainer.id}`);
-    } else if (normalizedEmail === "trainer@urbangrind.com" && trainers[0]) {
-      login({ id: trainers[0].id, role: "trainer", email: normalizedEmail, name: trainers[0].name });
-      navigate(`/trainer/${trainers[0].id}`);
-    } else if (memberPasswordMismatch) {
-      toast.error("Invalid password for this member account.");
-      return;
-    } else if (matchedMember) {
-      login({ id: matchedMember.id, role: "user", email: normalizedEmail, name: matchedMember.name });
-      navigate(`/user/${matchedMember.id}`);
+    if (result.ok) {
+      toast.success("Login successful!");
+      const { user } = result;
+      
+      // Navigate based on normalized role
+      if (user.role === "admin") {
+        navigate("/admin");
+      } else if (user.role === "trainer") {
+        navigate(`/trainer/${user.id}`);
+      } else {
+        navigate(`/user/${user.id}`);
+      }
     } else {
-      toast.error("No account found for this email.");
-      return;
+      toast.error(result.error || "Login failed. Please check your credentials.");
     }
-    toast.success("Login successful!");
   };
 
   return (
@@ -100,6 +73,7 @@ const Login = () => {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
             />
             {errors.email && <p className="error-text">{errors.email}</p>}
           </label>
@@ -113,6 +87,7 @@ const Login = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
               />
               <button
                 type="button"
@@ -125,7 +100,9 @@ const Login = () => {
           </label>
 
           <div className="action-row">
-            <button type="submit" className="lg-btn">Login</button>
+            <button type="submit" className="lg-btn" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
+            </button>
            <p className="link-cta mt-3">Not joined yet?</p>
             <Link to="/join" className="link-ctan">
                Join now

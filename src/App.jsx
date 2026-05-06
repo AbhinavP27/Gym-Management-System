@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
 import Home from './pages/Home'
@@ -11,6 +11,7 @@ import Payments from './pages/dashboard/components/Payments'
 import Members from './pages/dashboard/components/Members'
 import Trainers from './pages/dashboard/components/Trainer'
 import Settings from './pages/dashboard/components/Settings'
+import Broadcast from './pages/dashboard/components/Broadcast'
 import { Toaster } from 'react-hot-toast'
 import UserDashboard from './pages/dashboard/user/UserDashboard'
 import TrainerDashboard from './pages/dashboard/trainer/TrainerDashboard'
@@ -38,6 +39,15 @@ import { NotificationProvider } from './context/NotificationContext'
 import ProtectedRoute from './components/ProtectedRoute'
 
 const App = () => {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("app-theme") || "dark";
+    if (savedTheme !== "dark") {
+      const themes = ["theme-light", "theme-midnight", "theme-emerald", "theme-sunset", "theme-ocean", "theme-obsidian"];
+      document.body.classList.remove(...themes);
+      document.body.classList.add(`theme-${savedTheme}`);
+    }
+  }, []);
+
   return (
     <>
       <Toaster
@@ -77,6 +87,7 @@ const App = () => {
                                 <Route path='/admin/payments' element={<Payments role="admin" />} />
                                 <Route path='/admin/settings' element={<Settings role="admin" />} />
                                 <Route path='/admin/attendance' element={<Attendance role="admin" />} />
+                                <Route path='/admin/broadcast' element={<Broadcast />} />
                               </Route>
 
                               <Route element={<ProtectedRoute allowedRoles={['user']} />}>
@@ -97,7 +108,7 @@ const App = () => {
                                 <Route path='/trainer/:trainerId/workouts' element={<Workouts />} />
                                 <Route path='/trainer/:trainerId/diets' element={<DietPlans />} />
                                 <Route path='/trainer/:trainerId/progress' element={<Progress role="trainer" />} />
-                                <Route path='/trainer/:trainerId/messages' element={<Messages role="trainer" />} />
+                                <Route path='/trainer/:trainerId/broadcast' element={<Broadcast role="trainer" />} />
                                 <Route path='/trainer/:trainerId/settings' element={<Settings role="trainer" />} />
                                 <Route path='/trainer/:trainerId/attendance' element={<Attendance role="trainer" />} />
                               </Route>
